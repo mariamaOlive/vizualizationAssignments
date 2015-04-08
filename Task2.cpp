@@ -24,8 +24,18 @@ IMPLEMENT_GEOX_CLASS( Task2, 0 )
 	ADD_VECTOR2F_PROP(Center, 0)
 	ADD_INT32_PROP(NumSamples, 0)
 
+	//input hyperbola
+	ADD_SEPARATOR("Hyperbola")
+	ADD_FLOAT32_PROP(a, 0)
+	ADD_FLOAT32_PROP(b, 0)
+	ADD_FLOAT32_PROP(minu, 0)
+	ADD_FLOAT32_PROP(maxu, 0)
+	ADD_INT32_PROP(NumSamples, 0)
+
+
 	ADD_NOARGS_METHOD(Task2::NegativeSlope)   
 	ADD_NOARGS_METHOD(Task2::DrawCircle)
+	ADD_NOARGS_METHOD(Task2::DrawHyperbola)
 }                                               
 
 QWidget* Task2::createViewer()
@@ -57,6 +67,12 @@ Task2::Task2()
 	Radius = 0.1;
 	Center = makeVector2f((endAxisX[0]+scatterOrigin[0])/2,(endAxisY[1]+scatterOrigin[1])/2);
 	NumSamples = 20;
+
+	//hyperbola values
+	a = 1;
+	b = 1;
+	minu = -3;
+	maxu = 3;
 }                                               
                                               
 Task2::~Task2()        
@@ -145,5 +161,29 @@ void Task2::DrawCircle(){
 	// display changes
     viewer->refresh();
 
+}
+
+void Task2::DrawHyperbola(){
+	viewer->clear();
+	CreateAxis();
+	
+	float u= minu;
+	//Create a hyperbola
+	for(int i=0; i < NumSamples; i++){
+		u = u + (maxu-minu)/NumSamples;
+		float pointX = a * cosh(u);
+		float pointY = b * sinh(u);
+		//float pointX = Center[0] + Radius * cos(2 * 3.14159265 * float(i)/float(NumSamples-1));
+		//float pointY = Center[1] + Radius * sin(2 * 3.14159265 * float(i)/float(NumSamples-1));
+	
+		const Vector2f A = makeVector2f(pointX,pointY);
+		
+		//CreateParaline(pointX,pointY);	
+
+		viewer->addPoint(A);  
+	}
+
+	// display changes
+    viewer->refresh();
 }
 

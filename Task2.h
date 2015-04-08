@@ -25,6 +25,7 @@ public:
 	void NegativeSlope();
 	void CreateParaline(float x, float y);
 	void DrawCircle();
+	void DrawHyperbola();
 
 	virtual QWidget* createViewer();
                                                
@@ -49,6 +50,12 @@ private:
 	float Radius;
 	Vector2f Center;
 	int NumSamples;
+
+	//Parameters for the hypobola
+	float a;
+	float b;
+	float minu;
+	float maxu;
 
 protected:
     GLGeometryViewer* viewer;
