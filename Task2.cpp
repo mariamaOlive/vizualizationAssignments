@@ -52,11 +52,12 @@ Task2::Task2()
 	scatterOrigin = makeVector2f(-1.5,0.0);
 	endAxisX = makeVector2f(-0.5,0.0);
 	endAxisY = makeVector2f(-1.5,1.0);
+	endAxisYDown = makeVector2f(-1.5,-1.0);
 
 	//parallel cord axis
-	startX1 = makeVector2f(0.5,0.0);
+	startX1 = makeVector2f(0.5,-1.0);
 	endX1 = makeVector2f(0.5,1.0);
-	startX2 = makeVector2f(1.5,0.0);
+	startX2 = makeVector2f(1.5,-1.0);
 	endX2 = makeVector2f(1.5,1.0);
 
 	//slope values
@@ -85,6 +86,7 @@ void Task2::CreateAxis()
 	//scatter plot axes
 	viewer->addLine(scatterOrigin, endAxisX, color, 2);
 	viewer->addLine(scatterOrigin, endAxisY, color, 2);
+	viewer->addLine(scatterOrigin, endAxisYDown, color, 2);
 
 	//parallel coordinates plot "axes"
 	viewer->addLine(startX1, endX1, color, 2);
@@ -171,15 +173,15 @@ void Task2::DrawHyperbola(){
 	//Create a hyperbola
 	for(int i=0; i < NumSamples; i++){
 		u = u + (maxu-minu)/NumSamples;
-		float pointX = a * cosh(u);
-		float pointY = b * sinh(u);
+		float pointX = (a * cosh(u))+scatterOrigin[0] -1;
+		float pointY =(b * sinh(u))+scatterOrigin[1];
 		//float pointX = Center[0] + Radius * cos(2 * 3.14159265 * float(i)/float(NumSamples-1));
 		//float pointY = Center[1] + Radius * sin(2 * 3.14159265 * float(i)/float(NumSamples-1));
 	
 		const Vector2f A = makeVector2f(pointX,pointY);
 		
 		//CreateParaline(pointX,pointY);	
-
+		CreateParaline(pointX,pointY);
 		viewer->addPoint(A);  
 	}
 

@@ -35,6 +35,7 @@ private:
 	Vector2f scatterOrigin;
 	Vector2f endAxisX;
 	Vector2f endAxisY;
+	Vector2f endAxisYDown;
 
 	//parrallel plot axis
 	Vector2f startX1;
