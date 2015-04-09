@@ -5,7 +5,12 @@
 //---------------------------------------------// 
 #include "Properties.h"      
 #include "GLGeometryViewer.h"
-#include "GeoXOutput.h"                         
+#include "GeoXOutput.h"     
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+using namespace std;
 //---------------------------------------------//
                                              
                                           
@@ -48,6 +53,12 @@ Task22::Task22()
 {          
 	viewer = NULL;
 
+	//File Name
+	fileName="cars.csv";
+
+	//Data from the file
+	
+
 	//scatterplot axis
 	scatterOrigin = makeVector2f(-1.5,0.0);
 	endAxisX = makeVector2f(-0.5,0.0);
@@ -75,11 +86,69 @@ Task22::Task22()
 	b = 1;
 	minu = -3;
 	maxu = 3;
+
+	//testing load file
+	LoadFile();
 }                                               
                                               
 Task22::~Task22()        
 {             
-}                                               
+}   
+
+void Task22::LoadFile()
+{
+	ifstream file;
+	file.open(fileName);
+	vector<string> dataString;
+	vector<string> variableName;
+	vector<vector<float>> variableData;
+
+	if(file.is_open()){
+		//if successfully open read the file
+		while(!file.eof()){
+			string line;
+			file>>line;
+			dataString.push_back(line);
+		}
+		file.close();
+		dataString.pop_back(); //trick to remove the last element that is an empty string
+		
+		//Organizing the elements read into their respective array
+
+		//separating the name of the variables
+		string firstLine= dataString[0];
+
+		//check if there is comma (improve checking afterwards)
+		int commaPosition=firstLine.find_first_of(',',0);
+		while(commaPosition!= std::string::npos){
+			commaPosition=firstLine.find_first_of(',',0);
+			variableName.push_back(firstLine.substr(0, commaPosition));
+			//Removing the recognized variable from the string
+			firstLine.erase(0,commaPosition+1);
+		}
+		
+		//separating the values of the variables
+		
+		for(int i=1;i<dataString.size() ;i++){
+			//starts from the second element because the first line is the name of the variables
+			vector<float> valuesReadLine;
+			string analizedLine= dataString[i];
+			commaPosition=analizedLine.find_first_of(',',0);
+			while(commaPosition!= std::string::npos){
+				commaPosition=analizedLine.find_first_of(',',0);
+				float valueVariable;
+				valueVariable=stof(analizedLine.substr(0, commaPosition));
+
+				//Tranforming the read string value into float and putting into the array
+				valuesReadLine.push_back(valueVariable);
+				//Removing the recognized variable from the string
+				analizedLine.erase(0,commaPosition+1);
+			}
+			variableData.push_back(valuesReadLine);
+		}
+	}
+
+}
                                                
 void Task22::CreateAxis()        
 {                        
