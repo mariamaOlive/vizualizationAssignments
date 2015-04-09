@@ -25,6 +25,7 @@ IMPLEMENT_GEOX_CLASS( Task22, 0 )
 	ADD_SEPARATOR("Negative slope")
 	ADD_FLOAT32_PROP(slope, 0)
 	ADD_FLOAT32_PROP(Yorigo,0)
+	ADD_STRING_PROP(fileName, 0)
 
 	ADD_NOARGS_METHOD(Task22::NegativeSlope)   
 	ADD_NOARGS_METHOD(Task22::Paraline)
@@ -41,7 +42,7 @@ Task22::Task22()
 	viewer = NULL;
 
 	//File Name
-	fileName="cars.csv";
+	fileName="";
 
 	//Data from the file
 	
