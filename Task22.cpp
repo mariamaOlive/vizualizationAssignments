@@ -13,7 +13,10 @@
 #include <algorithm> 
 using namespace std;
 //---------------------------------------------//
-                                           
+    
+
+///        Second part of Task2               //
+
                                           
 IMPLEMENT_GEOX_CLASS( Task22, 0 )    
 {                                               

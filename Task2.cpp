@@ -8,7 +8,10 @@
 #include "GeoXOutput.h"                         
 //---------------------------------------------//
                                              
-                                          
+
+///        First part of Task2               //
+
+
 IMPLEMENT_GEOX_CLASS( Task2, 0 )    
 {                                               
 	BEGIN_CLASS_INIT( Task2 );       
@@ -178,3 +181,11 @@ void Task2::DrawHyperbola(){
     viewer->refresh();
 }
 
+float Task2::positionAxis(float value, float vMin, float vMax, float yMin, float yMax){
+	float finalValue = 0;
+	//Calculating the proporcional value in the axis
+	//float v = vMax-vMin
+	if(vMax-vMin != 0)
+		finalValue= ((value-vMin)*(yMax-yMin)/(vMax-vMin))+yMin;
+	return finalValue;
+}

@@ -8,7 +8,7 @@
 //-------------------------------------------- //
                                             
 
-///        First own experiment               //
+///        First part of Task2               //
 
 class Task2 : public Experiment    
 {                                              
@@ -26,6 +26,7 @@ public:
 	void CreateParaline(float x, float y);
 	void DrawCircle();
 	void DrawHyperbola();
+	float positionAxis(float value, float vMin, float vMax, float yMin, float yMax);
 
 	virtual QWidget* createViewer();
                                                
