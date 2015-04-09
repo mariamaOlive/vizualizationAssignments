@@ -26,6 +26,7 @@ public:
 	void CreateParaline(float x, float y);
 	void DrawCircle();
 	void DrawHyperbola();
+	void Paraline();
 
 	virtual QWidget* createViewer();
                                                
