@@ -10,10 +10,10 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <algorithm> 
 using namespace std;
 //---------------------------------------------//
-#include <algorithm> 
-using namespace std;                                             
+                                           
                                           
 IMPLEMENT_GEOX_CLASS( Task22, 0 )    
 {                                               
@@ -26,22 +26,7 @@ IMPLEMENT_GEOX_CLASS( Task22, 0 )
 	ADD_FLOAT32_PROP(slope, 0)
 	ADD_FLOAT32_PROP(Yorigo,0)
 
-	//input circle values
-	ADD_SEPARATOR("Circle")
-	ADD_FLOAT32_PROP(Radius, 0)
-	ADD_VECTOR2F_PROP(Center, 0)
-
-	//input hyperbola
-	ADD_SEPARATOR("Hyperbola")
-	ADD_FLOAT32_PROP(a, 0)
-	ADD_FLOAT32_PROP(b, 0)
-	ADD_FLOAT32_PROP(minu, 0)
-	ADD_FLOAT32_PROP(maxu, 0)
-
-
 	ADD_NOARGS_METHOD(Task22::NegativeSlope)   
-	ADD_NOARGS_METHOD(Task22::DrawCircle)
-	ADD_NOARGS_METHOD(Task22::DrawHyperbola)
 	ADD_NOARGS_METHOD(Task22::Paraline)
 }                                               
 
@@ -78,16 +63,6 @@ Task22::Task22()
 	//slope values
 	slope=-1;
 	Yorigo = 1;
-
-	//circle values
-	Radius = 0.1;
-	Center = makeVector2f((endAxisX[0]+scatterOrigin[0])/2,(endAxisY[1]+scatterOrigin[1])/2);
-
-	//hyperbola values
-	a = 1;
-	b = 1;
-	minu = -3;
-	maxu = 3;
 
 	//testing load file
 	LoadFile();
@@ -198,52 +173,6 @@ void Task22::NegativeSlope()
 
 		pointX+= pace;
 		pointY= slope*(pointX-scatterOrigin[0])+Yorigo;
-	}
-
-	// display changes
-    viewer->refresh();
-}
-
-void Task22::DrawCircle(){
-	viewer->clear();
-	CreateAxis();
-	
-	//Create a circle by iterating over 360 degrees.
-	for(int i=1; i < NumSamples; i++){
-
-		float pointX = Center[0] + Radius * cos(2 * 3.14159265 * float(i)/float(NumSamples-1));
-		float pointY = Center[1] + Radius * sin(2 * 3.14159265 * float(i)/float(NumSamples-1));
-		//radiens not degrees
-		const Vector2f A = makeVector2f(pointX,pointY);
-		
-		CreateParaline(pointX,pointY);	
-
-		viewer->addPoint(A);  
-	}
-
-	// display changes
-    viewer->refresh();
-
-}
-
-void Task22::DrawHyperbola(){
-	viewer->clear();
-	CreateAxis();
-	
-	float u= minu;
-	//Create a hyperbola
-	for(int i=0; i < NumSamples; i++){
-		u = u + (maxu-minu)/NumSamples;
-		float pointX = (a * cosh(u))+scatterOrigin[0];
-		float pointY =(b * sinh(u))+scatterOrigin[1];
-		//float pointX = Center[0] + Radius * cos(2 * 3.14159265 * float(i)/float(NumSamples-1));
-		//float pointY = Center[1] + Radius * sin(2 * 3.14159265 * float(i)/float(NumSamples-1));
-	
-		const Vector2f A = makeVector2f(pointX,pointY);
-		
-		//CreateParaline(pointX,pointY);	
-		CreateParaline(pointX,pointY);
-		viewer->addPoint(A);  
 	}
 
 	// display changes

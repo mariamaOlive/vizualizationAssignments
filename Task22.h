@@ -29,8 +29,6 @@ public:
     void CreateAxis();    
 	void NegativeSlope();
 	void CreateParaline(float x, float y);
-	void DrawCircle();
-	void DrawHyperbola();
 	void LoadFile();
 	void Paraline();
 
@@ -62,16 +60,6 @@ private:
 	//Parameters for slope
 	float slope;
 	float Yorigo;
-
-	//Parametrs for the circle
-	float Radius;
-	Vector2f Center;
-
-	//Parameters for the hypobola
-	float a;
-	float b;
-	float minu;
-	float maxu;
 
 protected:
     GLGeometryViewer* viewer;
