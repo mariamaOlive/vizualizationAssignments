@@ -41,6 +41,9 @@ private:
 	vector<string> variableName;
 	vector<vector<float>> variableData;
 
+	//Rendering Properties
+	float Alfa;
+
 protected:
     GLGeometryViewer* viewer;
 

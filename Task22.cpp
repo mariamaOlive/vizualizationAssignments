@@ -18,8 +18,11 @@ using namespace std;
 IMPLEMENT_GEOX_CLASS( Task22, 0 )    
 {                                               
 	BEGIN_CLASS_INIT( Task22 );       
- 
 	ADD_NOARGS_METHOD(Task22::Paraline)
+	ADD_SEPARATOR("File Name")	
+	ADD_STRING_PROP(fileName,0);
+	ADD_SEPARATOR("Rendering")
+	ADD_FLOAT32_PROP(Alfa,0);
 }                                               
 
 QWidget* Task22::createViewer()
@@ -33,7 +36,8 @@ Task22::Task22()
 	viewer = NULL;
 
 	//File Name
-	fileName="cars2.csv";
+	fileName="Cars.csv";
+	Alfa=1;
 
 	//Data from the file
 	//vector<string> variableName;
@@ -115,7 +119,7 @@ void Task22::LoadFile()
 void Task22::Paraline(){
 	viewer->clear();
 	Vector4f color = makeVector4f(1,1,1,1);
-	Vector4f color2 = makeVector4f(0,1,1,1);
+	Vector4f color2 = makeVector4f(0,1,1,Alfa);
 
 	//get max/min value of container vector, rezise the value of axis
 	//x depend on the number of vectors, y depends on max-min for each vector
