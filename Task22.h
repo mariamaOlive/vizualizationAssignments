@@ -42,7 +42,7 @@ private:
 
 	//fileData 
 	vector<string> variableName;
-	vector<float> variableData;
+	vector<vector<float>> variableData;
 
 	//scatterplot axis
 	Vector2f scatterOrigin;

@@ -42,10 +42,11 @@ Task22::Task22()
 	viewer = NULL;
 
 	//File Name
-	fileName="";
+	fileName="cars.csv";
 
 	//Data from the file
-	
+	//vector<string> variableName;
+	//vector<vector<float>> variableData;
 
 	//scatterplot axis
 	scatterOrigin = makeVector2f(-1.5,0.0);
@@ -78,8 +79,6 @@ void Task22::LoadFile()
 	ifstream file;
 	file.open(fileName);
 	vector<string> dataString;
-	vector<string> variableName;
-	vector<vector<float>> variableData;
 
 	if(file.is_open()){
 		//if successfully open read the file
@@ -106,23 +105,35 @@ void Task22::LoadFile()
 		}
 		
 		//separating the values of the variables
-		
+		int numberOfVariable= variableName.size();
+		bool firstTime = true;
+
 		for(int i=1;i<dataString.size() ;i++){
 			//starts from the second element because the first line is the name of the variables
-			vector<float> valuesReadLine;
 			string analizedLine= dataString[i];
 			commaPosition=analizedLine.find_first_of(',',0);
+			
+			int auxPos=0;
+
 			while(commaPosition!= std::string::npos){
 				commaPosition=analizedLine.find_first_of(',',0);
 				float valueVariable;
 				valueVariable=stof(analizedLine.substr(0, commaPosition));
 
 				//Tranforming the read string value into float and putting into the array
-				valuesReadLine.push_back(valueVariable);
+				if(firstTime){
+					//It just enters here the first time that in order to create the vector of the variables
+					vector<float> auxArray;
+					auxArray.push_back(valueVariable);
+					variableData.push_back(auxArray);
+				}else{
+					variableData.at(auxPos).push_back(valueVariable);
+					auxPos++;
+				}
 				//Removing the recognized variable from the string
 				analizedLine.erase(0,commaPosition+1);
 			}
-			variableData.push_back(valuesReadLine);
+			firstTime=false;
 		}
 	}
 
@@ -185,41 +196,47 @@ void Task22::Paraline(){
 	Vector4f color = makeVector4f(1,1,1,1);
 	Vector4f color2 = makeVector4f(0,1,1,1);
 
-	vector<float> arr;
+/*	vector<float> arr;
 	arr.push_back(1);
 	arr.push_back(2);
 	arr.push_back(3);
 	arr.push_back(4);
-/*	float s = arr.size();
+	float s = arr.size();
 	float max = *max_element(arr.begin(), arr.end());
 	float min = *min_element(arr.begin(), arr.end());
 	output << "size: " << s << " max: " << max   << " min: " << min << "\n";  */
 
-	vector<float> arr2;
+/*	vector<float> arr2;
 	arr2.push_back(5);
 	arr2.push_back(0);
 	arr2.push_back(7);
 	arr2.push_back(4);
-/*	float s2 = arr2.size();
+	float s2 = arr2.size();
 	float max2 = *max_element(arr2.begin(), arr2.end());
 	float min2 = *min_element(arr2.begin(), arr2.end());
-	output << "size: " << s2 << " max: " << max2 << " min: " << min2 << "\n";*/
+	output << "size: " << s2 << " max: " << max2 << " min: " << min2 << "\n";
 
 	vector<vector<float>> testData;
 	testData.push_back(arr);
-	testData.push_back(arr2);
+	testData.push_back(arr2); */
 
 	//float magic = testData.size(); //Magic number from number of vectors
 	//get max/min value of container vector, rezise the value of axis
 	//x depend on the number of vectors, y depends on max-min for each vector
+
+	output << "size: " << variableData.size()  << "\n";  
 	float startx = 0; 
-	float endx = 1/float(testData.size());
-	float starty = -1/float(testData.size());
+	float endx = 1/float(variableData.size());
+	float starty = -1/float(variableData.size());
 	output << "ystart: " << starty <<  "\n";
-	float endy = 1/float(testData.size());
+	float endy = 1/float(variableData.size());
 	output << "endy: " << endy <<  "\n";
 
-	for(int i=1; i < testData.size(); i++){
+	//////////////////////////////////////////////////////////////
+
+	/////////////////////////////////////////////////////////////
+
+	for(int i=1; i < variableData.size(); i++){
 
 		//Drawing parallel axis
 		Vector2f parYstart = makeVector2f(startx,starty);
@@ -227,17 +244,18 @@ void Task22::Paraline(){
 		viewer->addLine(parYstart, parYend, color, 2);
 		
 		//Calculating min and max values for previous vector
-		vector<float> dataVector = testData[i-1];
+		vector<float> dataVector = variableData[i-1];
 		float max = *max_element(dataVector.begin(), dataVector.end());
 		float min = *min_element(dataVector.begin(), dataVector.end());
 
 		//Calculating min and max for this vector
-		vector<float> dataVector2 = testData[i];
+		vector<float> dataVector2 = variableData[i];
 		float max2 = *max_element(dataVector2.begin(), dataVector2.end());
 		float min2 = *min_element(dataVector2.begin(), dataVector2.end());
 
 		//Drawing lines between the point
 		for(int j=0; j<dataVector2.size(); j++){
+			output << "size: " << dataVector2.size()  << "\n";  
 			float value1 = dataVector[j];
 			//Calculating the position of the fist variable
 			float new1 = positionAxis(value1, max, min, endy, starty);
