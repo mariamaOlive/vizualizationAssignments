@@ -218,14 +218,16 @@ void Task22::Paraline(){
 	output << "endy: " << endy <<  "\n";
 
 	for(int i=0; i < testData.size(); i++){
-		vector<float> dataVector = testData[i];
-		float max = *max_element(dataVector.begin(), dataVector.end());
-		float min = *min_element(dataVector.begin(), dataVector.end());
 
+		//
 		Vector2f parYstart = makeVector2f(startx,starty);
 		Vector2f parYend = makeVector2f(startx,endy);
 
 		viewer->addLine(parYstart, parYend, color, 2);
+
+		vector<float> dataVector = testData[i];
+		float max = *max_element(dataVector.begin(), dataVector.end());
+		float min = *min_element(dataVector.begin(), dataVector.end());
 
 		startx+= endx*2;
 	}
