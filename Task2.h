@@ -43,14 +43,15 @@ private:
 	Vector2f startX2;
 	Vector2f endX2;
 
+	int NumSamples;
+
 	//Parameters for slope
 	float slope;
-	int numberPoints;
+	float Yorigo;
 
 	//Parametrs for the circle
 	float Radius;
 	Vector2f Center;
-	int NumSamples;
 
 	//Parameters for the hypobola
 	float a;

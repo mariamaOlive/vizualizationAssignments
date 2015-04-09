@@ -13,16 +13,17 @@ IMPLEMENT_GEOX_CLASS( Task2, 0 )
 {                                               
 	BEGIN_CLASS_INIT( Task2 );       
 
+	ADD_INT32_PROP(NumSamples, 0)
+
 	//input values slope and number of points
 	ADD_SEPARATOR("Negative slope")
 	ADD_FLOAT32_PROP(slope, 0)
-	ADD_INT32_PROP(numberPoints,0)
+	ADD_FLOAT32_PROP(Yorigo,0)
 
 	//input circle values
 	ADD_SEPARATOR("Circle")
 	ADD_FLOAT32_PROP(Radius, 0)
 	ADD_VECTOR2F_PROP(Center, 0)
-	ADD_INT32_PROP(NumSamples, 0)
 
 	//input hyperbola
 	ADD_SEPARATOR("Hyperbola")
@@ -30,7 +31,6 @@ IMPLEMENT_GEOX_CLASS( Task2, 0 )
 	ADD_FLOAT32_PROP(b, 0)
 	ADD_FLOAT32_PROP(minu, 0)
 	ADD_FLOAT32_PROP(maxu, 0)
-	ADD_INT32_PROP(NumSamples, 0)
 
 
 	ADD_NOARGS_METHOD(Task2::NegativeSlope)   
@@ -60,14 +60,15 @@ Task2::Task2()
 	startX2 = makeVector2f(1.5,-1.0);
 	endX2 = makeVector2f(1.5,1.0);
 
+	NumSamples = 10;
+
 	//slope values
 	slope=-1;
-	numberPoints=10;
+	Yorigo = 1;
 
 	//circle values
 	Radius = 0.1;
 	Center = makeVector2f((endAxisX[0]+scatterOrigin[0])/2,(endAxisY[1]+scatterOrigin[1])/2);
-	NumSamples = 20;
 
 	//hyperbola values
 	a = 1;
@@ -99,7 +100,7 @@ void Task2::CreateParaline(float xvalue, float yvalue){
 	// Y1 = YparStart, pointYvalue
 
 	Vector2f X1 = makeVector2f(startX1[0],(xvalue-scatterOrigin[0]));
-	Vector2f Y1 = makeVector2f(startX2[0],yvalue);
+	Vector2f Y1 = makeVector2f(startX2[0],(yvalue-scatterOrigin[1]));
 
 	viewer->addLine( X1, Y1);
 }
@@ -110,34 +111,22 @@ void Task2::NegativeSlope()
 	CreateAxis();
 
 	float pointX= scatterOrigin[0];
-	float pointY;
+	float pointY= Yorigo;
 
 	Vector4f color=makeVector4f(1,0,0,1);
 	int size= 5;
 	
-	float pace=(endAxisX[0]-scatterOrigin[0])/numberPoints;
+	float pace=(endAxisX[0]-scatterOrigin[0])/NumSamples;
 
-	for(int i=0; i<numberPoints; i++){
-		pointX+=pace;
-		pointY= slope*pointX;
+	for(int i=0; i<=NumSamples; i++){ 
 		Vector2f scatterPoint= makeVector2f(pointX,pointY);
 		viewer->addPoint(scatterPoint);
 
 		CreateParaline(pointX, pointY);
-	}
-	
-	/*float pointY= endAxisY[1];
-	Vector4f color=makeVector4f(1,0,0,1);
-	int size= 5;
-	
-	for(int i=0; i<10; i++){
-		pointX+=.1;
-		pointY-=.1;
-		Vector2f scatterPoint= makeVector2f(pointX,pointY);
-		viewer->addPoint(scatterPoint);
 
-		CreateParaline(pointX,pointY);
-	}*/
+		pointX+= pace;
+		pointY= slope*(pointX-scatterOrigin[0])+Yorigo;
+	}
 
 	// display changes
     viewer->refresh();
@@ -173,7 +162,7 @@ void Task2::DrawHyperbola(){
 	//Create a hyperbola
 	for(int i=0; i < NumSamples; i++){
 		u = u + (maxu-minu)/NumSamples;
-		float pointX = (a * cosh(u))+scatterOrigin[0] -1;
+		float pointX = (a * cosh(u))+scatterOrigin[0];
 		float pointY =(b * sinh(u))+scatterOrigin[1];
 		//float pointX = Center[0] + Radius * cos(2 * 3.14159265 * float(i)/float(NumSamples-1));
 		//float pointY = Center[1] + Radius * sin(2 * 3.14159265 * float(i)/float(NumSamples-1));
