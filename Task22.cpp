@@ -18,6 +18,7 @@ using namespace std;
 IMPLEMENT_GEOX_CLASS( Task22, 0 )    
 {                                               
 	BEGIN_CLASS_INIT( Task22 );       
+	ADD_NOARGS_METHOD(Task22::LoadFile)
 	ADD_NOARGS_METHOD(Task22::Paraline)
 	ADD_SEPARATOR("File Name")	
 	ADD_STRING_PROP(fileName,0);
@@ -42,9 +43,6 @@ Task22::Task22()
 	//Data from the file
 	//vector<string> variableName;
 	//vector<vector<float>> variableData;
-
-	//testing load file
-	LoadFile();
 }                                               
                                               
 Task22::~Task22()        
@@ -53,6 +51,11 @@ Task22::~Task22()
 
 void Task22::LoadFile()
 {
+	//Clear the previous data from the vector
+	variableName.clear();
+	variableData.clear();
+
+	//Opening and extracting info from the file
 	ifstream file;
 	file.open(fileName);
 	vector<string> dataString;
