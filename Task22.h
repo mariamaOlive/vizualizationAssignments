@@ -13,7 +13,7 @@ using namespace std;
 //-------------------------------------------- //
                                             
 
-///        First own experiment               //
+///        Second part of Task2               //
 
 class Task22 : public Experiment    
 {                                              
