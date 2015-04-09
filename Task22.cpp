@@ -180,40 +180,60 @@ void Task22::NegativeSlope()
 }
 
 void Task22::Paraline(){
+	viewer->clear();
 	Vector4f color = makeVector4f(1,1,1,1);
 
-	vector<int> arr;
+	vector<float> arr;
 	arr.push_back(1);
 	arr.push_back(2);
 	arr.push_back(3);
 	arr.push_back(4);
-	int s = arr.size();
-	int max = *max_element(arr.begin(), arr.end());
-	int min = *min_element(arr.begin(), arr.end());
-	output << "size: " << s << " max: " << max   << " min: " << min << "\n";  
+/*	float s = arr.size();
+	float max = *max_element(arr.begin(), arr.end());
+	float min = *min_element(arr.begin(), arr.end());
+	output << "size: " << s << " max: " << max   << " min: " << min << "\n";  */
 
-	vector<int> arr2;
+	vector<float> arr2;
 	arr2.push_back(0);
 	arr2.push_back(5);
 	arr2.push_back(5);
 	arr2.push_back(10);
-	int s2 = arr2.size();
-	int max2 = *max_element(arr2.begin(), arr2.end());
-	int min2 = *min_element(arr2.begin(), arr2.end());
-	output << "size: " << s2 << " max: " << max2 << " min: " << min2 << "\n";
+/*	float s2 = arr2.size();
+	float max2 = *max_element(arr2.begin(), arr2.end());
+	float min2 = *min_element(arr2.begin(), arr2.end());
+	output << "size: " << s2 << " max: " << max2 << " min: " << min2 << "\n";*/
 
-/*	int magic = 2; //Magic number from number of vectors
+	vector<vector<float>> testData;
+	testData.push_back(arr);
+	testData.push_back(arr2);
+
+	//float magic = testData.size(); //Magic number from number of vectors
 	//get max/min value of container vector, rezise the value of axis
 	//x depend on the number of vectors, y depends on max-min for each vector
-	int xstart = 0, 
-	int xend = 1;
-	int ystart = -1;
-	int yend = 1;
+	float startx = 0; 
+	float endx = 1/float(testData.size());
+	float starty = -1/float(testData.size());
+	output << "ystart: " << starty <<  "\n";
+	float endy = 1/float(testData.size());
+	output << "endy: " << endy <<  "\n";
 
+	for(int i=0; i < testData.size(); i++){
+		vector<float> dataVector = testData[i];
+		float max = *max_element(dataVector.begin(), dataVector.end());
+		float min = *min_element(dataVector.begin(), dataVector.end());
 
+		Vector2f parYstart = makeVector2f(startx,starty);
+		Vector2f parYend = makeVector2f(startx,endy);
+
+		viewer->addLine(parYstart, parYend, color, 2);
+
+		startx+= endx*2;
+	}
+	startx = 0;
+/*
 	//parallel coordinates plot "axes"
 	viewer->addLine(startX1, endX1, color, 2);
 	viewer->addLine(startX2, endX2, color, 2);*/
 
-
+	viewer->refresh();
 }
