@@ -18,16 +18,7 @@ using namespace std;
 IMPLEMENT_GEOX_CLASS( Task22, 0 )    
 {                                               
 	BEGIN_CLASS_INIT( Task22 );       
-
-	ADD_INT32_PROP(NumSamples, 0)
-
-	//input values slope and number of points
-	ADD_SEPARATOR("Negative slope")
-	ADD_FLOAT32_PROP(slope, 0)
-	ADD_FLOAT32_PROP(Yorigo,0)
-	ADD_STRING_PROP(fileName, 0)
-
-	ADD_NOARGS_METHOD(Task22::NegativeSlope)   
+ 
 	ADD_NOARGS_METHOD(Task22::Paraline)
 }                                               
 
@@ -47,24 +38,6 @@ Task22::Task22()
 	//Data from the file
 	//vector<string> variableName;
 	//vector<vector<float>> variableData;
-
-	//scatterplot axis
-	scatterOrigin = makeVector2f(-1.5,0.0);
-	endAxisX = makeVector2f(-0.5,0.0);
-	endAxisY = makeVector2f(-1.5,1.0);
-	endAxisYDown = makeVector2f(-1.5,-1.0);
-
-	//parallel cord axis
-	startX1 = makeVector2f(0.5,-1.0);
-	endX1 = makeVector2f(0.5,1.0);
-	startX2 = makeVector2f(1.5,-1.0);
-	endX2 = makeVector2f(1.5,1.0);
-
-	NumSamples = 10;
-
-	//slope values
-	slope=-1;
-	Yorigo = 1;
 
 	//testing load file
 	LoadFile();
@@ -137,90 +110,13 @@ void Task22::LoadFile()
 		}
 	}
 
-}
-                                               
-void Task22::CreateAxis()        
-{                        
-	Vector4f color = makeVector4f(1,1,1,1);
-	//scatter plot axes
-	viewer->addLine(scatterOrigin, endAxisX, color, 2);
-	viewer->addLine(scatterOrigin, endAxisY, color, 2);
-	viewer->addLine(scatterOrigin, endAxisYDown, color, 2);
-
-	//parallel coordinates plot "axes"
-	viewer->addLine(startX1, endX1, color, 2);
-	viewer->addLine(startX2, endX2, color, 2);
-}    
-
-void Task22::CreateParaline(float xvalue, float yvalue){
-	//make parallel line between points
-	// X1 = XparStart, pointXvalue
-	// Y1 = YparStart, pointYvalue
-
-	Vector2f X1 = makeVector2f(startX1[0],(xvalue-scatterOrigin[0]));
-	Vector2f Y1 = makeVector2f(startX2[0],(yvalue-scatterOrigin[1]));
-
-	viewer->addLine( X1, Y1);
-}
-
-void Task22::NegativeSlope()
-{
-
-	viewer->clear();
-	CreateAxis();
-
-	float pointX= scatterOrigin[0];
-	float pointY= Yorigo;
-
-	Vector4f color=makeVector4f(1,0,0,1);
-	int size= 5;
-	
-	float pace=(endAxisX[0]-scatterOrigin[0])/NumSamples;
-
-	for(int i=0; i<=NumSamples; i++){ 
-		Vector2f scatterPoint= makeVector2f(pointX,pointY);
-		viewer->addPoint(scatterPoint);
-
-		CreateParaline(pointX, pointY);
-
-		pointX+= pace;
-		pointY= slope*(pointX-scatterOrigin[0])+Yorigo;
-	}
-
-	// display changes
-    viewer->refresh();
-}
+}                                             
 
 void Task22::Paraline(){
 	viewer->clear();
 	Vector4f color = makeVector4f(1,1,1,1);
 	Vector4f color2 = makeVector4f(0,1,1,1);
 
-/*	vector<float> arr;
-	arr.push_back(1);
-	arr.push_back(2);
-	arr.push_back(3);
-	arr.push_back(4);
-	float s = arr.size();
-	float max = *max_element(arr.begin(), arr.end());
-	float min = *min_element(arr.begin(), arr.end());
-	output << "size: " << s << " max: " << max   << " min: " << min << "\n";  */
-
-/*	vector<float> arr2;
-	arr2.push_back(5);
-	arr2.push_back(0);
-	arr2.push_back(7);
-	arr2.push_back(4);
-	float s2 = arr2.size();
-	float max2 = *max_element(arr2.begin(), arr2.end());
-	float min2 = *min_element(arr2.begin(), arr2.end());
-	output << "size: " << s2 << " max: " << max2 << " min: " << min2 << "\n";
-
-	vector<vector<float>> testData;
-	testData.push_back(arr);
-	testData.push_back(arr2); */
-
-	//float magic = testData.size(); //Magic number from number of vectors
 	//get max/min value of container vector, rezise the value of axis
 	//x depend on the number of vectors, y depends on max-min for each vector
 
@@ -231,8 +127,6 @@ void Task22::Paraline(){
 	output << "ystart: " << starty <<  "\n";
 	float endy = 1/float(variableData.size());
 	output << "endy: " << endy <<  "\n";
-
-	//////////////////////////////////////////////////////////////
 
 	/////////////////////////////////////////////////////////////
 
@@ -254,8 +148,7 @@ void Task22::Paraline(){
 		float min2 = *min_element(dataVector2.begin(), dataVector2.end());
 
 		//Drawing lines between the point
-		for(int j=0; j<dataVector2.size(); j++){
-			output << "size: " << dataVector2.size()  << "\n";  
+		for(int j=0; j<dataVector2.size(); j++){ 
 			float value1 = dataVector[j];
 			//Calculating the position of the fist variable
 			float new1 = positionAxis(value1, max, min, endy, starty);
