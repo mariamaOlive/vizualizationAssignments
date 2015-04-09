@@ -21,9 +21,12 @@ IMPLEMENT_GEOX_CLASS( Task22, 0 )
 	ADD_NOARGS_METHOD(Task22::LoadFile)
 	ADD_NOARGS_METHOD(Task22::Paraline)
 	ADD_SEPARATOR("File Name")	
-	ADD_STRING_PROP(fileName,0);
+	ADD_STRING_PROP(fileName,0)
+	ADD_SEPARATOR("Visual Scaling")
+	ADD_FLOAT32_PROP(XScale,0)
+	ADD_FLOAT32_PROP(YScale,0)
 	ADD_SEPARATOR("Rendering")
-	ADD_FLOAT32_PROP(Alfa,0);
+	ADD_FLOAT32_PROP(Alfa,0)
 }                                               
 
 QWidget* Task22::createViewer()
@@ -39,6 +42,8 @@ Task22::Task22()
 	//File Name
 	fileName="Cars.csv";
 	Alfa=1;
+	XScale=1;
+	YScale=1;
 
 	//Data from the file
 	//vector<string> variableName;

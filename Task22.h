@@ -43,6 +43,8 @@ private:
 
 	//Rendering Properties
 	float Alfa;
+	float XScale;
+	float YScale;
 
 protected:
     GLGeometryViewer* viewer;
