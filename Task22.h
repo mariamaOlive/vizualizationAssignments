@@ -5,6 +5,11 @@
 #include "Experiment.h"                        
 #include "LinearAlgebra.h"             
 #include "GLGeometryViewer.h"
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+using namespace std;
 //-------------------------------------------- //
                                             
 
@@ -26,12 +31,20 @@ public:
 	void CreateParaline(float x, float y);
 	void DrawCircle();
 	void DrawHyperbola();
+	void LoadFile();
 	void Paraline();
 
 	virtual QWidget* createViewer();
                                                
 //Attributes       
 private:
+	//fileName
+	string fileName;
+
+	//fileData 
+	vector<string> variableName;
+	vector<float> variableData;
+
 	//scatterplot axis
 	Vector2f scatterOrigin;
 	Vector2f endAxisX;
