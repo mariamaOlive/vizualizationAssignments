@@ -31,6 +31,7 @@ public:
 	void CreateParaline(float x, float y);
 	void LoadFile();
 	void Paraline();
+	float positionAxis(float value, float vMin, float vMax, float yMin, float yMax);
 
 	virtual QWidget* createViewer();
                                                

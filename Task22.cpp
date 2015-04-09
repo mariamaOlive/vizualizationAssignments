@@ -183,6 +183,7 @@ void Task22::NegativeSlope()
 void Task22::Paraline(){
 	viewer->clear();
 	Vector4f color = makeVector4f(1,1,1,1);
+	Vector4f color2 = makeVector4f(0,1,1,1);
 
 	vector<float> arr;
 	arr.push_back(1);
@@ -195,10 +196,10 @@ void Task22::Paraline(){
 	output << "size: " << s << " max: " << max   << " min: " << min << "\n";  */
 
 	vector<float> arr2;
+	arr2.push_back(5);
 	arr2.push_back(0);
-	arr2.push_back(5);
-	arr2.push_back(5);
-	arr2.push_back(10);
+	arr2.push_back(7);
+	arr2.push_back(4);
 /*	float s2 = arr2.size();
 	float max2 = *max_element(arr2.begin(), arr2.end());
 	float min2 = *min_element(arr2.begin(), arr2.end());
@@ -218,23 +219,52 @@ void Task22::Paraline(){
 	float endy = 1/float(testData.size());
 	output << "endy: " << endy <<  "\n";
 
-	for(int i=0; i < testData.size(); i++){
-		vector<float> dataVector = testData[i];
+	for(int i=1; i < testData.size(); i++){
+
+		//Drawing parallel axis
+		Vector2f parYstart = makeVector2f(startx,starty);
+		Vector2f parYend = makeVector2f(startx,endy);
+		viewer->addLine(parYstart, parYend, color, 2);
+		
+		//Calculating min and max values for previous vector
+		vector<float> dataVector = testData[i-1];
 		float max = *max_element(dataVector.begin(), dataVector.end());
 		float min = *min_element(dataVector.begin(), dataVector.end());
 
-		Vector2f parYstart = makeVector2f(startx,starty);
-		Vector2f parYend = makeVector2f(startx,endy);
+		//Calculating min and max for this vector
+		vector<float> dataVector2 = testData[i];
+		float max2 = *max_element(dataVector2.begin(), dataVector2.end());
+		float min2 = *min_element(dataVector2.begin(), dataVector2.end());
 
-		viewer->addLine(parYstart, parYend, color, 2);
+		//Drawing lines between the point
+		for(int j=0; j<dataVector2.size(); j++){
+			float value1 = dataVector[j];
+			//Calculating the position of the fist variable
+			float new1 = positionAxis(value1, max, min, endy, starty);
 
+			float value2 = dataVector2[j];
+			//Calculating the position of the next variable
+			float new2 = positionAxis(value2, max2, min2, endy, starty);
+
+			Vector2f lineStart = makeVector2f(startx,new1);
+			Vector2f lineEnd = makeVector2f(startx+endx*2,new2);
+			viewer->addLine(lineStart, lineEnd, color2, 2);
+		}
+		//iterating to next parallel axis (X value)
 		startx+= endx*2;
 	}
-	startx = 0;
-/*
-	//parallel coordinates plot "axes"
-	viewer->addLine(startX1, endX1, color, 2);
-	viewer->addLine(startX2, endX2, color, 2);*/
+
+	//Drawing last parallel axis
+	Vector2f parYstart = makeVector2f(startx,starty);
+	Vector2f parYend = makeVector2f(startx,endy);
+	viewer->addLine(parYstart, parYend, color, 2);
 
 	viewer->refresh();
+}
+
+float Task22::positionAxis(float value, float vMin, float vMax, float yMin, float yMax){
+
+	//Calculating the proporcional value in the axis
+	float finalValue= ((value-vMin)*(yMax-yMin)/(vMax-vMin))+yMin;
+	return finalValue;
 }
