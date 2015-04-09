@@ -57,8 +57,8 @@ Task2::Task2()
 	//parallel cord axis
 	startX1 = makeVector2f(0.5,-1.0);
 	endX1 = makeVector2f(0.5,1.0);
-	startX2 = makeVector2f(1.5,-1.0);
-	endX2 = makeVector2f(1.5,1.0);
+	startX2 = makeVector2f(1,-1.0);
+	endX2 = makeVector2f(1,1.0);
 
 	NumSamples = 10;
 
@@ -162,16 +162,42 @@ void Task2::DrawHyperbola(){
 	//Create a hyperbola
 	for(int i=0; i < NumSamples; i++){
 		u = u + (maxu-minu)/NumSamples;
-		float pointX = (a * cosh(u))+scatterOrigin[0];
-		float pointY =(b * sinh(u))+scatterOrigin[1];
+
+		//Relative to the axis X
+		float pointX = (a * cosh(u));
+		float pointX2 = -(a * cosh(u));
+		float pointY =(b * sinh(u));
+
+		double rad = 45*3.1415926/180;
+
+		float newX = pointX * cos(rad) - pointY * sin(rad) +scatterOrigin[0];
+		float newX2 = pointX2 * cos(rad) - pointY * sin(rad)+scatterOrigin[0];
+		float newY = pointY * cos(rad) + pointX * sin(rad)+scatterOrigin[1];
+		float newY2 = pointY * cos(rad) + pointX2 * sin(rad)+scatterOrigin[1];
+	
+
+		/*//Relative to the axis Y
+		float pointx = (a * cosh(u))+scatterOrigin[1];
+		float pointx2 = -(a * cosh(u)) +scatterOrigin[1];
+		float pointy =(b * sinh(u))+scatterOrigin[0];
+		*/
 		//float pointX = Center[0] + Radius * cos(2 * 3.14159265 * float(i)/float(NumSamples-1));
 		//float pointY = Center[1] + Radius * sin(2 * 3.14159265 * float(i)/float(NumSamples-1));
 	
-		const Vector2f A = makeVector2f(pointX,pointY);
-		
-		//CreateParaline(pointX,pointY);	
-		CreateParaline(pointX,pointY);
-		viewer->addPoint(A);  
+		const Vector2f A = makeVector2f(newX,newY);
+		const Vector2f B= makeVector2f(newX2,newY2);
+		//const Vector2f C = makeVector2f(pointy,pointx);
+		//const Vector2f D= makeVector2f(pointy, pointx2);
+			
+		CreateParaline(newX,newY);
+		CreateParaline(newX2,newY2);
+		//CreateParaline(pointy,pointx);
+		//CreateParaline(pointy,pointx2);
+
+		viewer->addPoint(A); 
+		viewer->addPoint(B);
+		//viewer->addPoint(C); 
+		//viewer->addPoint(D);
 	}
 
 	// display changes
