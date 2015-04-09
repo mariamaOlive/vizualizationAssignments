@@ -33,7 +33,7 @@ Task22::Task22()
 	viewer = NULL;
 
 	//File Name
-	fileName="cars.csv";
+	fileName="cars2.csv";
 
 	//Data from the file
 	//vector<string> variableName;
@@ -120,13 +120,10 @@ void Task22::Paraline(){
 	//get max/min value of container vector, rezise the value of axis
 	//x depend on the number of vectors, y depends on max-min for each vector
 
-	output << "size: " << variableData.size()  << "\n";  
 	float startx = 0; 
 	float endx = 1/float(variableData.size());
 	float starty = -1/float(variableData.size());
-	output << "ystart: " << starty <<  "\n";
 	float endy = 1/float(variableData.size());
-	output << "endy: " << endy <<  "\n";
 
 	/////////////////////////////////////////////////////////////
 
@@ -174,8 +171,10 @@ void Task22::Paraline(){
 }
 
 float Task22::positionAxis(float value, float vMin, float vMax, float yMin, float yMax){
-
+	float finalValue = 0;
 	//Calculating the proporcional value in the axis
-	float finalValue= ((value-vMin)*(yMax-yMin)/(vMax-vMin))+yMin;
+	//float v = vMax-vMin
+	if(vMax-vMin != 0)
+		finalValue= ((value-vMin)*(yMax-yMin)/(vMax-vMin))+yMin;
 	return finalValue;
 }
