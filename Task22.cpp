@@ -133,9 +133,9 @@ void Task22::Paraline(){
 	//x depend on the number of vectors, y depends on max-min for each vector
 
 	float startx = 0; 
-	float endx = 1/float(variableData.size());
-	float starty = -1/float(variableData.size());
-	float endy = 1/float(variableData.size());
+	float endx = 1/float(variableData.size())*XScale;
+	float starty = -1/float(variableData.size())*YScale;
+	float endy = 1/float(variableData.size())*YScale;
 
 	/////////////////////////////////////////////////////////////
 
