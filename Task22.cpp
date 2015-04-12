@@ -44,13 +44,12 @@ Task22::Task22()
 
 	//File Name
 	fileName="Cars.csv";
-	Alfa=1;
+
+	//alfa and y-axis, x-axis scale values
+	Alfa=0.25;
 	XScale=1;
 	YScale=1;
 
-	//Data from the file
-	//vector<string> variableName;
-	//vector<vector<float>> variableData;
 }                                               
                                               
 Task22::~Task22()        
@@ -129,19 +128,20 @@ void Task22::LoadFile()
 
 void Task22::Paraline(){
 	viewer->clear();
+
+	//axis color and line color2
 	Vector4f color = makeVector4f(1,1,1,1);
 	Vector4f color2 = makeVector4f(0,1,1,Alfa);
 
-	//get max/min value of container vector, rezise the value of axis
-	//x depend on the number of vectors, y depends on max-min for each vector
-
-	float startx = 0; 
+	//get max/min value of container vector, resize the value of axis
+	//x-axis depend on the number of vectors, y-axis depends on max-min for each vector
+	float startx = 0-(float(variableData.size()-1)/float(variableData.size()));		//center the x-axis so it fits nicely on screen
 	float endx = 1/float(variableData.size())*XScale;
 	float starty = -1/float(variableData.size())*YScale;
 	float endy = 1/float(variableData.size())*YScale;
 
-	/////////////////////////////////////////////////////////////
 
+	//Itterate over all vectors (data-lines)
 	for(int i=1; i < variableData.size(); i++){
 
 		//Drawing parallel axis
@@ -159,20 +159,23 @@ void Task22::Paraline(){
 		float max2 = *max_element(dataVector2.begin(), dataVector2.end());
 		float min2 = *min_element(dataVector2.begin(), dataVector2.end());
 
-		//Drawing lines between the point
+		//Iterrate over datapoint
 		for(int j=0; j<dataVector2.size(); j++){ 
-			float value1 = dataVector[j];
+
 			//Calculating the position of the fist variable
+			float value1 = dataVector[j];
 			float new1 = positionAxis(value1, max, min, endy, starty);
 
-			float value2 = dataVector2[j];
 			//Calculating the position of the next variable
+			float value2 = dataVector2[j];
 			float new2 = positionAxis(value2, max2, min2, endy, starty);
 
+			//Drawing lines between the point
 			Vector2f lineStart = makeVector2f(startx,new1);
 			Vector2f lineEnd = makeVector2f(startx+endx*2,new2);
 			viewer->addLine(lineStart, lineEnd, color2, 2);
 		}
+		
 		//iterating to next parallel axis (X value)
 		startx+= endx*2;
 	}
@@ -188,7 +191,6 @@ void Task22::Paraline(){
 float Task22::positionAxis(float value, float vMin, float vMax, float yMin, float yMax){
 	float finalValue = 0;
 	//Calculating the proporcional value in the axis
-	//float v = vMax-vMin
 	if(vMax-vMin != 0)
 		finalValue= ((value-vMin)*(yMax-yMin)/(vMax-vMin))+yMin;
 	return finalValue;

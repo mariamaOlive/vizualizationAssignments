@@ -16,9 +16,10 @@ IMPLEMENT_GEOX_CLASS( Task2, 0 )
 {                                               
 	BEGIN_CLASS_INIT( Task2 );       
 
+	//input number of points
 	ADD_INT32_PROP(NumSamples, 0)
 
-	//input values slope and number of points
+	//input values slope
 	ADD_SEPARATOR("Negative slope")
 	ADD_FLOAT32_PROP(slope, 0)
 	ADD_FLOAT32_PROP(Yorigo,0)
@@ -99,9 +100,6 @@ void Task2::CreateAxis()
 
 void Task2::CreateParaline(float xvalue, float yvalue){
 	//make parallel line between points
-	// X1 = XparStart, pointXvalue
-	// Y1 = YparStart, pointYvalue
-
 	Vector2f X1 = makeVector2f(startX1[0],(xvalue-scatterOrigin[0]));
 	Vector2f Y1 = makeVector2f(startX2[0],(yvalue-scatterOrigin[1]));
 
@@ -210,7 +208,6 @@ void Task2::DrawHyperbola(){
 float Task2::positionAxis(float value, float vMin, float vMax, float yMin, float yMax){
 	float finalValue = 0;
 	//Calculating the proporcional value in the axis
-	//float v = vMax-vMin
 	if(vMax-vMin != 0)
 		finalValue= ((value-vMin)*(yMax-yMin)/(vMax-vMin))+yMin;
 	return finalValue;
