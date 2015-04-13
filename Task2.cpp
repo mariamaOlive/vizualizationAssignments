@@ -72,8 +72,8 @@ Task2::Task2()
 	Yorigo = 1;
 
 	//circle values
-	Radius = 0.1;
-	Center = makeVector2f((endAxisX[0]+scatterOrigin[0])/2,(endAxisY[1]+scatterOrigin[1])/2);
+	Radius = 1;
+	Center = makeVector2f(0,0);
 
 	//hyperbola values
 	a = 1;
@@ -139,11 +139,15 @@ void Task2::DrawCircle(){
 	viewer->clear();
 	CreateAxis();
 	
+	//Traslating the point of center to the right coordinate
+	float xCenter = Center[0]+scatterOrigin[0];
+	float yCenter = Center[1]+scatterOrigin[1];
+
 	//Create a circle by iterating over 360 degrees.
 	for(int i=1; i < NumSamples; i++){
 
-		float pointX = Center[0] + Radius * cos(2 * 3.14159265 * float(i)/float(NumSamples-1));
-		float pointY = Center[1] + Radius * sin(2 * 3.14159265 * float(i)/float(NumSamples-1));
+		float pointX = xCenter + Radius * cos(2 * 3.14159265 * float(i)/float(NumSamples-1));
+		float pointY = yCenter + Radius * sin(2 * 3.14159265 * float(i)/float(NumSamples-1));
 		//radiens not degrees
 		const Vector2f A = makeVector2f(pointX,pointY);
 		
