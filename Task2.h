@@ -8,7 +8,8 @@
 //-------------------------------------------- //
                                             
 
-///        First part of Task2               //
+///        Task2: Part1               //
+///		Group members: Terese Nothnagel, Mariama Oliveira, Lui Pillmann de Barros	//
 
 class Task2 : public Experiment    
 {                                              
@@ -26,7 +27,6 @@ public:
 	void CreateParaline(float x, float y);
 	void DrawCircle();
 	void DrawHyperbola();
-	float positionAxis(float value, float vMin, float vMax, float yMin, float yMax);
 
 	virtual QWidget* createViewer();
                                                

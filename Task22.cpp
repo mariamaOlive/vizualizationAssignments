@@ -15,7 +15,8 @@ using namespace std;
 //---------------------------------------------//
     
 
-///        Second part of Task2               //
+///        Task2: Part2               //
+///		Group members: Terese Nothnagel, Mariama Oliveira, Lui Pillmann de Barros	//
 
                                           
 IMPLEMENT_GEOX_CLASS( Task22, 0 )    

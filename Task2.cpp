@@ -9,7 +9,8 @@
 //---------------------------------------------//
                                              
 
-///        First part of Task2               //
+///        Task2: Part1               //
+///		Group members: Terese Nothnagel, Mariama Oliveira, Lui Pillmann de Barros	//
 
 
 IMPLEMENT_GEOX_CLASS( Task2, 0 )    
@@ -54,22 +55,22 @@ Task2::Task2()
 
 	//scatterplot axis
 	scatterOrigin = makeVector2f(-1.5,0.0);
-	endAxisX = makeVector2f(6.5,0.0);
-	endAxisY = makeVector2f(-1.5,8.0);
-	endAxisYDown = makeVector2f(-1.5,-8.0);
-	endAxisXLeft= makeVector2f(-9.5,0.0);
+	endAxisX = makeVector2f(12,0.0);
+	endAxisY = makeVector2f(-1.5,13.5);
+	endAxisYDown = makeVector2f(-1.5,-13.5);
+	endAxisXLeft= makeVector2f(-13.5,0.0);
 
 	//parallel cord axis
-	startX1 = makeVector2f(7.5,-8.5);
-	endX1 = makeVector2f(7.5,8.5);
-	startX2 = makeVector2f(10,-8.5);
-	endX2 = makeVector2f(10,8.5);
+	startX1 = makeVector2f(17.5,-13.5);
+	endX1 = makeVector2f(17.5,13.5);
+	startX2 = makeVector2f(20,-13.5);
+	endX2 = makeVector2f(20,13.5);
 
 	NumSamples = 10;
 
 	//slope values
-	slope=-1;
-	Yorigo = 1;
+	slope = -1;
+	Yorigo = 13.5;
 
 	//circle values
 	Radius = 1;
@@ -195,12 +196,4 @@ void Task2::DrawHyperbola(){
 
 	// display changes
     viewer->refresh();
-}
-
-float Task2::positionAxis(float value, float vMin, float vMax, float yMin, float yMax){
-	float finalValue = 0;
-	//Calculating the proporcional value in the axis
-	if(vMax-vMin != 0)
-		finalValue= ((value-vMin)*(yMax-yMin)/(vMax-vMin))+yMin;
-	return finalValue;
 }

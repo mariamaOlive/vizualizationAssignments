@@ -13,7 +13,8 @@ using namespace std;
 //-------------------------------------------- //
                                             
 
-///        Second part of Task2               //
+///        Task2: Part2               //
+///		Group members: Terese Nothnagel, Mariama Oliveira, Lui Pillmann de Barros	//
 
 class Task22 : public Experiment    
 {                                              
