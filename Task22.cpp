@@ -122,6 +122,8 @@ void Task22::LoadFile()
 			}
 			firstTime=false;
 		}
+	}else{
+			output<<"The file could not be loaded!";
 	}
 
 }                                             

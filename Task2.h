@@ -37,6 +37,7 @@ private:
 	Vector2f endAxisX;
 	Vector2f endAxisY;
 	Vector2f endAxisYDown;
+	Vector2f endAxisXLeft;
 
 	//parrallel plot axis
 	Vector2f startX1;

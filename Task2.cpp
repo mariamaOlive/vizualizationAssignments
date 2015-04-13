@@ -54,15 +54,16 @@ Task2::Task2()
 
 	//scatterplot axis
 	scatterOrigin = makeVector2f(-1.5,0.0);
-	endAxisX = makeVector2f(-0.5,0.0);
-	endAxisY = makeVector2f(-1.5,1.0);
-	endAxisYDown = makeVector2f(-1.5,-1.0);
+	endAxisX = makeVector2f(6.5,0.0);
+	endAxisY = makeVector2f(-1.5,8.0);
+	endAxisYDown = makeVector2f(-1.5,-8.0);
+	endAxisXLeft= makeVector2f(-9.5,0.0);
 
 	//parallel cord axis
-	startX1 = makeVector2f(0.5,-1.0);
-	endX1 = makeVector2f(0.5,1.0);
-	startX2 = makeVector2f(1,-1.0);
-	endX2 = makeVector2f(1,1.0);
+	startX1 = makeVector2f(7.5,-8.5);
+	endX1 = makeVector2f(7.5,8.5);
+	startX2 = makeVector2f(10,-8.5);
+	endX2 = makeVector2f(10,8.5);
 
 	NumSamples = 10;
 
@@ -92,6 +93,7 @@ void Task2::CreateAxis()
 	viewer->addLine(scatterOrigin, endAxisX, color, 2);
 	viewer->addLine(scatterOrigin, endAxisY, color, 2);
 	viewer->addLine(scatterOrigin, endAxisYDown, color, 2);
+	viewer->addLine(scatterOrigin, endAxisXLeft, color, 2);
 
 	//parallel coordinates plot "axes"
 	viewer->addLine(startX1, endX1, color, 2);
