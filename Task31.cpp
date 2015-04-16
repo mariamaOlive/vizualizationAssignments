@@ -110,6 +110,10 @@ void Task31::DrawScalarField()
     }*/
 
 
+	//for each cell, get value for each of the four points and compare them to isovalue, (true/false smaller or bigger?)
+	// if all are smaller/bigger do nothing, if one point is diffrent, if two point are diffrent (check for diagonal case)
+
+
 }
 
 
