@@ -17,17 +17,8 @@ IMPLEMENT_GEOX_CLASS( Task31, 0)
 
     ADD_SEPARATOR("Scalarfield")
     ADD_STRING_PROP(ScalarfieldFilename, 0)
+	ADD_FLOAT32_PROP(isovalue,0)
     ADD_NOARGS_METHOD(Task31::DrawScalarField)
-
-    ADD_SEPARATOR("Vectorfield")
-    ADD_STRING_PROP(VectorfieldFilename, 0)
-    ADD_FLOAT32_PROP(ArrowScale, 0)
-    ADD_NOARGS_METHOD(Task31::DrawVectorField)
-
-    ADD_SEPARATOR("Texture")
-    ADD_STRING_PROP(ImageFilename, 0)
-    ADD_BOOLEAN_PROP(bColoredTexture, 0)
-    ADD_NOARGS_METHOD(Task31::DrawTexture)
 }
 
 QWidget* Task31::createViewer()
@@ -40,14 +31,39 @@ Task31::Task31()
 {
     viewer = NULL;
     ScalarfieldFilename = "SimpleGrid.am";
-    VectorfieldFilename = "";
-    ArrowScale = 0.1;
-    ImageFilename = "";
-    bColoredTexture = true;
+	isovalue = 1;
 }
 
 Task31::~Task31() {}
 
+void Task31::DrawGrid(ScalarField2 field){
+	Vector2f minBox= makeVector2f(field.boundMin()[0], field.boundMin()[1]);
+	Vector2f maxBox= makeVector2f(field.boundMax()[0], field.boundMax()[1]);
+
+	//Adding boundaries of the grid (boundBox)
+	viewer->addLine(makeVector2f(minBox[0],minBox[1]), makeVector2f(maxBox[0],minBox[1]));
+	viewer->addLine(makeVector2f(maxBox[0],minBox[1]), makeVector2f(maxBox[0],maxBox[1]));
+	viewer->addLine(makeVector2f(maxBox[0],maxBox[1]), makeVector2f(minBox[0],maxBox[1]));
+	viewer->addLine(makeVector2f(minBox[0],maxBox[1]), makeVector2f(minBox[0],minBox[1]));
+
+	//Adding grid line horizontally
+	for(int i=1;i<field.dims()[1]-1;i++){
+		Vector2f p1= field.nodePosition(0,i);	
+		Vector2f p2= field.nodePosition(field.dims()[0]-1,i);
+	
+		viewer->addLine(p1,p2);
+	}
+
+	//Adding grid line vertically
+	for(int i=1;i<field.dims()[0]-1;i++){
+		Vector2f p1= field.nodePosition(i, 0);	
+		Vector2f p2= field.nodePosition(i,field.dims()[1]-1);
+	
+		viewer->addLine(p1,p2);
+	}
+
+    viewer->refresh();
+}
 
 void Task31::DrawScalarField()
 {
@@ -60,6 +76,8 @@ void Task31::DrawScalarField()
         output << "Error loading field file " << ScalarfieldFilename << "\n";
         return;
     }
+
+	DrawGrid(field);
 
     //Get the minimum/maximum value in that field
     /*float32 min = std::numeric_limits<float32>::max();
@@ -91,61 +109,10 @@ void Task31::DrawScalarField()
         }
     }*/
 
-	Vector2f minBox= makeVector2f(field.boundMin()[0], field.boundMin()[1]);
-	Vector2f maxBox= makeVector2f(field.boundMax()[0], field.boundMax()[1]);
 
-	//Adding boundaries of the grid (boundBox)
-	viewer->addLine(makeVector2f(minBox[0],minBox[1]), makeVector2f(maxBox[0],minBox[1]));
-	viewer->addLine(makeVector2f(maxBox[0],minBox[1]), makeVector2f(maxBox[0],maxBox[1]));
-	viewer->addLine(makeVector2f(maxBox[0],maxBox[1]), makeVector2f(minBox[0],maxBox[1]));
-	viewer->addLine(makeVector2f(minBox[0],maxBox[1]), makeVector2f(minBox[0],minBox[1]));
-
-	//Adding grid line horizontally
-	for(int i=1;i<field.dims()[1]-1;i++){
-		Vector2f p1= field.nodePosition(0,i);	
-		Vector2f p2= field.nodePosition(field.dims()[0]-1,i);
-	
-		viewer->addLine(p1,p2);
-	}
-
-	//Adding grid line vertically
-	for(int i=1;i<field.dims()[0]-1;i++){
-		Vector2f p1= field.nodePosition(i, 0);	
-		Vector2f p2= field.nodePosition(i,field.dims()[1]-1);
-	
-		viewer->addLine(p1,p2);
-	}
-
-    viewer->refresh();
 }
 
 
-void Task31::DrawVectorField()
-{
-    viewer->clear();
-
-    //Load the vector field
-    VectorField2 field;
-    if (!field.load(VectorfieldFilename))
-    {
-        output << "Error loading field file " << VectorfieldFilename << "\n";
-        return;
-    }
-
-    //Draw vector directions (constant length)
-    for(float32 x=field.boundMin()[0]; x<=field.boundMax()[0]; x+=0.2)
-    {
-        for(float32 y=field.boundMin()[1]; y<=field.boundMax()[1]; y+=0.2)
-        {
-            Vector2f vec = field.sample(x,y);
-            vec.normalize();
-
-            viewer->addLine(x, y, x + ArrowScale*vec[0], y + ArrowScale*vec[1]);
-        }
-    }
-
-    viewer->refresh();
-}
 
 
 namespace
@@ -167,67 +134,3 @@ namespace
 }
 
 
-void Task31::DrawTexture()
-{
-    viewer->clear();
-
-    //Load the texture using Qt
-    QImage image(ImageFilename.c_str());
-
-    //Get its (original) dimensions. Used as bounds later.
-    const float fWidth = (float)image.width();
-    const float fHeight = (float)image.height();
-
-    //Resize to power-of-two and mirror.
-    image = image.mirrored().scaled(NextPOT(image.width()), NextPOT(image.height()));
-
-    //Get its new integer dimensions.
-    const int iWidth = image.width();
-    const int iHeight = image.height();
-
-    if (bColoredTexture)
-    {
-        //Create three color channels for the texture
-        //Each of them is represented using a scalar field
-        ScalarField2 Red;
-        Red.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
-        ScalarField2 Green;
-        Green.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
-        ScalarField2 Blue;
-        Blue.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
-
-        //Fill the scalar fields
-        for(size_t j=0; j<Red.dims()[1]; j++)
-        {
-            for(size_t i=0; i<Red.dims()[0]; i++)
-            {
-                Red.setNodeScalar(i, j, (float)(qRed(image.pixel(i, j))) / 255.0 );
-                Green.setNodeScalar(i, j, (float)(qGreen(image.pixel(i, j))) / 255.0 );
-                Blue.setNodeScalar(i, j, (float)(qBlue(image.pixel(i, j))) / 255.0 );
-            }
-        }
-
-        //Set the texture in the viewer
-        viewer->setTextureRGB(Red.getData(), Green.getData(), Blue.getData());
-    }
-    else
-    {
-        //Create one gray color channel represented as a scalar field
-        ScalarField2 Gray;
-        Gray.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
-
-        //Set the values at the vertices
-        for(size_t j=0; j<Gray.dims()[1]; j++)
-        {
-            for(size_t i=0; i<Gray.dims()[0]; i++)
-            {
-                Gray.setNodeScalar(i, j, (float)(qGray(image.pixel(i, j))) / 255.0 );
-            }
-        }
-
-        //Set the texture in the viewer
-        viewer->setTextureGray(Gray.getData());
-    }
-
-    viewer->refresh();
-}

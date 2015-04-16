@@ -5,6 +5,7 @@
 #include "Experiment.h"
 #include "LinearAlgebra.h"
 #include "GLGeometryViewer.h"
+#include "Field2.hpp"
 //---------------------------------------------------------------------------
 
 
@@ -24,27 +25,16 @@ public:
 
 //Methods
 public:
+	void DrawGrid(ScalarField2 field);
     void DrawScalarField();
-    void DrawVectorField();
-    void DrawTexture();
+    
     virtual QWidget* createViewer();
 
 //Attributes
 public:
     ///File name of the scalar field
     string ScalarfieldFilename;
-
-    ///File name of the vector field
-    string VectorfieldFilename;
-
-    ///Length of the arrows
-    float ArrowScale;
-
-    ///File name of the image for the texture
-    string ImageFilename;
-
-    ///Whether to draw the texture in RGB or grayscale
-    bool bColoredTexture;
+	float isovalue;
 
 protected:
     GLGeometryViewer* viewer;
