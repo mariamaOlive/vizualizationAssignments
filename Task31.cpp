@@ -62,7 +62,7 @@ void Task31::DrawScalarField()
     }
 
     //Get the minimum/maximum value in that field
-    float32 min = std::numeric_limits<float32>::max();
+    /*float32 min = std::numeric_limits<float32>::max();
     float32 max = -std::numeric_limits<float32>::max();
     for(size_t j=0; j<field.dims()[1]; j++)
     {
@@ -89,7 +89,15 @@ void Task31::DrawScalarField()
             p.color[0] = c; p.color[1] = c; p.color[2] = c;
             viewer->addPoint(p);
         }
-    }
+    }*/
+
+	Vector2f minBox= makeVector2f(field.boundMin()[0], field.boundMin()[1]);
+	Vector2f maxBox= makeVector2f(field.boundMax()[0], field.boundMax()[1]);
+
+	viewer->addLine(makeVector2f(minBox[0],minBox[1]), makeVector2f(maxBox[0],minBox[1]));
+	viewer->addLine(makeVector2f(maxBox[0],minBox[1]), makeVector2f(maxBox[0],maxBox[1]));
+	viewer->addLine(makeVector2f(maxBox[0],maxBox[1]), makeVector2f(minBox[0],maxBox[1]));
+	viewer->addLine(makeVector2f(minBox[0],maxBox[1]), makeVector2f(minBox[0],minBox[1]));
 
     viewer->refresh();
 }
