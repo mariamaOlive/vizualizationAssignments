@@ -39,7 +39,7 @@ QWidget* Task31::createViewer()
 Task31::Task31()
 {
     viewer = NULL;
-    ScalarfieldFilename = "";
+    ScalarfieldFilename = "SimpleGrid.am";
     VectorfieldFilename = "";
     ArrowScale = 0.1;
     ImageFilename = "";
@@ -94,10 +94,27 @@ void Task31::DrawScalarField()
 	Vector2f minBox= makeVector2f(field.boundMin()[0], field.boundMin()[1]);
 	Vector2f maxBox= makeVector2f(field.boundMax()[0], field.boundMax()[1]);
 
+	//Adding boundaries of the grid (boundBox)
 	viewer->addLine(makeVector2f(minBox[0],minBox[1]), makeVector2f(maxBox[0],minBox[1]));
 	viewer->addLine(makeVector2f(maxBox[0],minBox[1]), makeVector2f(maxBox[0],maxBox[1]));
 	viewer->addLine(makeVector2f(maxBox[0],maxBox[1]), makeVector2f(minBox[0],maxBox[1]));
 	viewer->addLine(makeVector2f(minBox[0],maxBox[1]), makeVector2f(minBox[0],minBox[1]));
+
+	//Adding grid line horizontally
+	for(int i=1;i<field.dims()[1]-1;i++){
+		Vector2f p1= field.nodePosition(0,i);	
+		Vector2f p2= field.nodePosition(field.dims()[0]-1,i);
+	
+		viewer->addLine(p1,p2);
+	}
+
+	//Adding grid line vertically
+	for(int i=1;i<field.dims()[0]-1;i++){
+		Vector2f p1= field.nodePosition(i, 0);	
+		Vector2f p2= field.nodePosition(i,field.dims()[1]-1);
+	
+		viewer->addLine(p1,p2);
+	}
 
     viewer->refresh();
 }
