@@ -14,6 +14,12 @@
 /// The code is meant to demonstrate how
 ///  to use the GeoX framework
 ///
+class Cell{
+	public:
+		float v1, v2, v3, v4;
+		Vector2f p1, p2, p3, p4; 
+};
+
 class Task31 : public Experiment
 {
     GEOX_CLASS(Task31)
@@ -27,13 +33,14 @@ public:
 public:
 	void DrawGrid(ScalarField2 field);
     void DrawScalarField();
-    
+   
     virtual QWidget* createViewer();
 
 //Attributes
 public:
     ///File name of the scalar field
-    string ScalarfieldFilename;
+	vector<Cell> vectorCells;
+	string ScalarfieldFilename;
 	float isovalue;
 
 protected:

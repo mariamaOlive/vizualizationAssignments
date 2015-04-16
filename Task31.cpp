@@ -27,6 +27,7 @@ QWidget* Task31::createViewer()
     return viewer;
 }
 
+
 Task31::Task31()
 {
     viewer = NULL;
@@ -109,6 +110,26 @@ void Task31::DrawScalarField()
         }
     }*/
 
+	//Loading cell into a vector
+
+	for(int i=0; i<field.dims()[0]-1;i++){		
+		for(int j=0; j<field.dims()[1]-1; j++){
+			Cell cell;
+			//loading the values of each point
+			cell.v1=field.nodeScalar(i,j);
+			cell.v2=field.nodeScalar(i+1,j);
+			cell.v3=field.nodeScalar(i+1,j+1);
+			cell.v4=field.nodeScalar(i,j+1);
+			//loading the position of each point
+			cell.p1=field.nodePosition(i,j);
+			cell.p2=field.nodePosition(i+1,j);
+			cell.p3=field.nodePosition(i+1,j+1);
+			cell.p4=field.nodePosition(i,j+1);
+			vectorCells.push_back(cell);
+		}
+	}
+
+	int k=0;
 
 	//for each cell, get value for each of the four points and compare them to isovalue, (true/false smaller or bigger?)
 	// if all are smaller/bigger do nothing, if one point is diffrent, if two point are diffrent (check for diagonal case)
