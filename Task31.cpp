@@ -160,46 +160,33 @@ void Task31::DrawScalarField()
 
 				else{
 				//if it is the other two cases
-					output << "Cellnumber: " << i << "\n";
-
 					Vector2f pInter [2]; 
 					int count=0;
 
 					if(sign[0]!=sign[1]){
 						pInter[count]=makeVector2f(calculateIntersection(cell.v1, cell.v2, cell.p1[0], cell.p2[0]), cell.p1[1]);
-
-						output << "down " << pInter[count] << "\n";
-
+						//output << "down " << pInter[count] << "\n";
 						count++;
 					}
 
 					if(sign[1]!=sign[2]){
-						pInter[count]=makeVector2f(cell.p2[0], calculateIntersection(cell.v3, cell.v2, cell.p3[1], cell.p2[1]));
-						
-						output << "left" << pInter[count] << "\n";
-
+						pInter[count]=makeVector2f(cell.p2[0], calculateIntersection(cell.v3, cell.v2, cell.p3[1], cell.p2[1]));					
+						//output << "left" << pInter[count] << "\n";
 						count++;
 					}
 
 					if(sign[2]!=sign[3]){
-						pInter[count]=makeVector2f(calculateIntersection(cell.v4, cell.v3, cell.p4[0], cell.p3[0]), cell.p3[1]);
-						//pInter[count] = makeVector2f(calculateIntersection(cell.v3, cell.v4, cell.p3[0], cell.p4[0]), cell.p3[1]);
-						
-						output << "up" << pInter[count] << "\n";
-
+						pInter[count]=makeVector2f(calculateIntersection(cell.v4, cell.v3, cell.p4[0], cell.p3[0]), cell.p3[1]);			
+						//output << "up" << pInter[count] << "\n";
 						count++;
 					}
 					
 					if(sign[3]!=sign[0]){
-						pInter[count]=makeVector2f(cell.p4[0], calculateIntersection(cell.v4, cell.v1, cell.p4[1], cell.p1[1]));
-						//pInter[count] = makeVector2f(cell.p4[0], calculateIntersection(cell.v1, cell.v4, cell.p1[1], cell.p4[1]));
-						
-						output << "right" << pInter[count] << "\n";
-
+						pInter[count]=makeVector2f(cell.p4[0], calculateIntersection(cell.v4, cell.v1, cell.p4[1], cell.p1[1]));					
+						//output << "right" << pInter[count] << "\n";
 					}
 
 					viewer->addLine(pInter[0], pInter[1]);
-					output << "\n";
 				}
 
 			}
@@ -207,10 +194,11 @@ void Task31::DrawScalarField()
 	}
 }
 
-
+//reversed linear interpolation (in 1D domain)
 float Task31::calculateIntersection(float vMin, float vMax, float xMin, float xMax){
-	float unknownCoord = isovalue*((xMax-xMin)/(vMax-vMin))+xMin;
-	 //output << "new coord value " << unknownCoord << "\n";
+	//float unknownCoord = isovalue*((xMax-xMin)/(vMax-vMin))+xMin;
+	float unknownCoord = (isovalue*(xMax-xMin)-vMin*xMax+vMax*xMin)/(vMax-vMin);
+
 	return unknownCoord;
 }
 
