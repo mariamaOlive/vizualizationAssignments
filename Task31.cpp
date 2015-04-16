@@ -129,12 +129,65 @@ void Task31::DrawScalarField()
 		}
 	}
 
-	int k=0;
-
 	//for each cell, get value for each of the four points and compare them to isovalue, (true/false smaller or bigger?)
 	// if all are smaller/bigger do nothing, if one point is diffrent, if two point are diffrent (check for diagonal case)
 
+	//Going through each cell and checking if there are isoline intersecting
+	for(int i=0; i<vectorCells.size();i++){
+			Cell cell= vectorCells.at(i);
+			bool sign[4];
+			
+			//Comparing each vertex to the isovalue
+			
+				sign[0] =  cell.v1>=isovalue ? true:false ;
+				sign[1] =  cell.v2>=isovalue ? true:false ;
+				sign[2] =  cell.v3>=isovalue ? true:false ;
+				sign[3] =  cell.v4>=isovalue ? true:false ;
+			
 
+			//Checking if the isovalue intersects the cell
+			if(!(sign[0] == sign[1] == sign[2] == sign[3])){
+				//if at least one of the vertex is different there's a isoline in the cell
+				
+				
+				if(sign[0]==sign[2] && sign[1]==sign[3]){
+				//if it is a diagonal case 
+				}else{
+				//if it is the other two cases
+					Vector2f pInter [2]; 
+					int count=0;
+
+					if(sign[0]!=sign[1]){
+						pInter[count]=makeVector2f(calculateIntersection(cell.v1, cell.v2, cell.p1[0], cell.p2[0]), cell.p1[1]);
+						count++;
+					}
+
+					if(sign[1]!=sign[2]){
+						pInter[count]=makeVector2f(cell.p2[0], calculateIntersection(cell.v3, cell.v2, cell.p3[1], cell.p2[1]));
+						count++;
+					}
+
+					if(sign[2]!=sign[3]){
+						pInter[count]=makeVector2f(calculateIntersection(cell.v4, cell.v3, cell.p4[0], cell.p3[0]), cell.p3[1]);
+						count++;
+					}
+					
+					if(sign[3]!=sign[0]){
+						pInter[count]=makeVector2f(cell.p4[0], calculateIntersection(cell.v4, cell.v1, cell.p4[1], cell.p1[1]));
+					}
+
+					viewer->addLine(pInter[0], pInter[1]);
+				}
+
+			}
+			viewer->refresh();
+	}
 }
 
+
+float Task31::calculateIntersection(float vMin, float vMax, float xMin, float xMax){
+	float unknownCoord= isovalue*(abs(xMax-xMin)/abs(vMax-vMin))+xMin;
+
+	return unknownCoord;
+}
 

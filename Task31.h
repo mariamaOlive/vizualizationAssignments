@@ -33,6 +33,7 @@ public:
 public:
 	void DrawGrid(ScalarField2 field);
     void DrawScalarField();
+	float calculateIntersection(float vMin, float vMax, float xMin, float xMax);
    
     virtual QWidget* createViewer();
 
