@@ -86,37 +86,6 @@ void Task32::DrawScalarField()
 
 	//DrawGrid(field);
 
-    //Get the minimum/maximum value in that field
-    /*float32 min = std::numeric_limits<float32>::max();
-    float32 max = -std::numeric_limits<float32>::max();
-    for(size_t j=0; j<field.dims()[1]; j++)
-    {
-        for(size_t i=0; i< field.dims()[0]; i++)
-        {
-            const float32 val = field.nodeScalar(i,j);
-            min = val < min ? val : min;
-            max = val > max ? val : max;
-        }
-    }
-
-    //Draw a point for each grid vertex.
-    for(size_t j=0; j<field.dims()[1]; j++)
-    {
-        for(size_t i=0; i<field.dims()[0]; i++)
-        {
-            const float32 val = field.nodeScalar(i, j);
-            const float32 c = (val - min) / (max - min);
-
-            Point2D p;
-            p.position  = field.nodePosition(i, j);
-            p.size = 5;
-            //Use a grayscale depending on the actual value
-            p.color[0] = c; p.color[1] = c; p.color[2] = c;
-            viewer->addPoint(p);
-        }
-    }*/
-
-
 	//Get the minimum/maximum value in that field
     float32 min = std::numeric_limits<float32>::max();
     float32 max = -std::numeric_limits<float32>::max();
@@ -135,7 +104,7 @@ void Task32::DrawScalarField()
 	//Reading the cells 
 	for(float t=min; t<=max; t=t+gap){
 		isovalue=t;
-		output << "Calculating isovalue:"<<t<< "\n";
+		//output << "Calculating isovalue:"<<t<< "\n";
 		for(int i=0; i<field.dims()[0]-1;i=i++){		
 			for(int j=0; j<field.dims()[1]-1; j=j++){
 				Cell1 cell;
@@ -159,6 +128,7 @@ void Task32::DrawScalarField()
 			}
 		}
 	}
+	viewer->refresh();
 }
 
 
