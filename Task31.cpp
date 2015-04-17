@@ -17,7 +17,9 @@ IMPLEMENT_GEOX_CLASS( Task31, 0)
 
     ADD_SEPARATOR("Scalarfield")
     ADD_STRING_PROP(ScalarfieldFilename, 0)
+	ADD_SEPARATOR("Value of isolines")
 	ADD_FLOAT32_PROP(isovalue,0)
+	ADD_SEPARATOR("Ambiguity strategy")
 	ADD_BOOLEAN_PROP(asymptotic,0)
     ADD_NOARGS_METHOD(Task31::DrawScalarField)
 }
