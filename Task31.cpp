@@ -52,7 +52,7 @@ void Task31::DrawGrid(ScalarField2 field){
 	viewer->addLine(makeVector2f(minBox[0],maxBox[1]), makeVector2f(minBox[0],minBox[1]),color,1);
 
 	//Adding grid line horizontally
-	for(int i=1;i<field.dims()[1]-1;i++){
+	for(int i=1;i<field.dims()[1]-1;i=i+100){
 		Vector2f p1= field.nodePosition(0,i);	
 		Vector2f p2= field.nodePosition(field.dims()[0]-1,i);
 	
@@ -60,7 +60,7 @@ void Task31::DrawGrid(ScalarField2 field){
 	}
 
 	//Adding grid line vertically
-	for(int i=1;i<field.dims()[0]-1;i++){
+	for(int i=1;i<field.dims()[0]-1;i=i+100){
 		Vector2f p1= field.nodePosition(i, 0);	
 		Vector2f p2= field.nodePosition(i,field.dims()[1]-1);
 	
@@ -82,7 +82,7 @@ void Task31::DrawScalarField()
         return;
     }
 
-	DrawGrid(field);
+	//DrawGrid(field);
 
     //Get the minimum/maximum value in that field
     /*float32 min = std::numeric_limits<float32>::max();
@@ -116,31 +116,38 @@ void Task31::DrawScalarField()
 
 	//Loading cell into a vector
 
-	for(int i=0; i<field.dims()[0]-1;i++){		
-		for(int j=0; j<field.dims()[1]-1; j++){
-			Cell cell;
-			//loading the values of each point
-			cell.v1=field.nodeScalar(i,j);
-			cell.v2=field.nodeScalar(i+1,j);
-			cell.v3=field.nodeScalar(i+1,j+1);
-			cell.v4=field.nodeScalar(i,j+1);
-			//loading the position of each point
-			cell.p1=field.nodePosition(i,j);
-			cell.p2=field.nodePosition(i+1,j);
-			cell.p3=field.nodePosition(i+1,j+1);
-			cell.p4=field.nodePosition(i,j+1);
-			vectorCells.push_back(cell);
+	for(int t=-45; t<-25; t++){
+		isovalue=t;
+		for(int i=0; i<field.dims()[0]-1;i=i++){		
+			for(int j=0; j<field.dims()[1]-1; j=j++){
+				Cell cell;
+				//loading the values of each point
+				cell.v1=field.nodeScalar(i,j);
+				cell.v2=field.nodeScalar(i+1,j);
+				cell.v3=field.nodeScalar(i+1,j+1);
+				cell.v4=field.nodeScalar(i,j+1);
+				//loading the position of each point
+				cell.p1=field.nodePosition(i,j);
+				cell.p2=field.nodePosition(i+1,j);
+				cell.p3=field.nodePosition(i+1,j+1);
+				cell.p4=field.nodePosition(i,j+1);
+			
+				//for each cell, get value for each of the four points and compare them to isovalue, (true/false smaller or bigger?)
+				// if all are smaller/bigger do nothing, if one point is diffrent, if two point are diffrent (check for diagonal case)
+
+				//Going through each cell and checking if there are isoline intersecting
+				DrawIntersection(cell);
+
+			}
 		}
 	}
 
 	output <<"\n";
+}
 
-	//for each cell, get value for each of the four points and compare them to isovalue, (true/false smaller or bigger?)
-	// if all are smaller/bigger do nothing, if one point is diffrent, if two point are diffrent (check for diagonal case)
 
-	//Going through each cell and checking if there are isoline intersecting
-	for(int i=0; i<vectorCells.size();i++){
-			Cell cell = vectorCells[i];
+void Task31::DrawIntersection(Cell cellAnalysed){
+	Cell cell = cellAnalysed;
 			bool sign[4];
 			
 			//Comparing each vertex to the isovalue
@@ -159,7 +166,7 @@ void Task31::DrawScalarField()
 				
 				//if it is a diagonal case
 				if(sign[0]==sign[2] && sign[1]==sign[3]){ 
-					output << "Diagonal case Cellnumber: " << i << "\n" << "\n";
+					//output << "Diagonal case Cellnumber: " << i << "\n" << "\n";
 					
 					Vector2f points[4]; 
 					//calculate the intersection points
@@ -244,8 +251,6 @@ void Task31::DrawScalarField()
 				}
 
 			}
-			viewer->refresh();
-	}
 }
 
 //reversed linear interpolation (in 1D domain)

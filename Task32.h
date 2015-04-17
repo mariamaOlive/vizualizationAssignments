@@ -34,7 +34,7 @@ public:
 	void DrawGrid(ScalarField2 field);
     void DrawScalarField();
 	float calculateIntersection(float vMin, float vMax, float xMin, float xMax);
-   
+	void DrawIntersection(Cell1 cell);
     virtual QWidget* createViewer();
 
 //Attributes
@@ -43,6 +43,8 @@ public:
 	vector<Cell1> vectorCells;
 	string ScalarfieldFilename;
 	float isovalue;
+	bool asymptotic;
+	int N;
 
 protected:
     GLGeometryViewer* viewer;
