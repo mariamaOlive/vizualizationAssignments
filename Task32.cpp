@@ -15,10 +15,11 @@ IMPLEMENT_GEOX_CLASS( Task32, 0)
 {
     BEGIN_CLASS_INIT( Task32 );
 
-    ADD_SEPARATOR("Scalarfield")
+    ADD_SEPARATOR("File Name")
     ADD_STRING_PROP(ScalarfieldFilename, 0)
-	ADD_FLOAT32_PROP(isovalue,0)
+	ADD_SEPARATOR("Ambiguity strategy")
 	ADD_BOOLEAN_PROP(asymptotic,0)
+	ADD_SEPARATOR("Number of isolines")
 	ADD_INT32_PROP(N,0);
     ADD_NOARGS_METHOD(Task32::DrawScalarField)
 }
@@ -34,7 +35,6 @@ Task32::Task32()
 {
     viewer = NULL;
     ScalarfieldFilename = "IsabelTemperature.am";
-	isovalue = 1;
 	asymptotic = false;
 	N=10;
 }
@@ -53,7 +53,7 @@ void Task32::DrawGrid(ScalarField2 field){
 	viewer->addLine(makeVector2f(maxBox[0],maxBox[1]), makeVector2f(minBox[0],maxBox[1]),color,1);
 	viewer->addLine(makeVector2f(minBox[0],maxBox[1]), makeVector2f(minBox[0],minBox[1]),color,1);
 
-	//Adding grid line horizontally
+	/*//Adding grid line horizontally
 	for(int i=1;i<field.dims()[1]-1;i=i+100){
 		Vector2f p1= field.nodePosition(0,i);	
 		Vector2f p2= field.nodePosition(field.dims()[0]-1,i);
@@ -67,7 +67,7 @@ void Task32::DrawGrid(ScalarField2 field){
 		Vector2f p2= field.nodePosition(i,field.dims()[1]-1);
 	
 		viewer->addLine(p1,p2,color,1);
-	}
+	}*/
 
     viewer->refresh();
 }
@@ -84,7 +84,7 @@ void Task32::DrawScalarField()
         return;
     }
 
-	//DrawGrid(field);
+	DrawGrid(field);
 
 	//Get the minimum/maximum value in that field
     min = std::numeric_limits<float32>::max();
