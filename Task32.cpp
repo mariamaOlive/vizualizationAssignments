@@ -132,7 +132,6 @@ void Task32::DrawScalarField()
 
 				//Going through each cell and checking if there are isoline intersecting
 				DrawIntersection(cell, color);
-
 			}
 		}	
 	}
@@ -143,109 +142,108 @@ void Task32::DrawScalarField()
 void Task32::DrawIntersection(Cell1 cellAnalysed, Vector4f color){
 
 	Cell1 cell = cellAnalysed;
-			bool sign[4];
+	bool sign[4];
 			
-			//Comparing each vertex to the isovalue
+	//Comparing each vertex to the isovalue		
+	sign[0] =  cell.v1>=isovalue ? true:false ;
+	sign[1] =  cell.v2>=isovalue ? true:false ;
+	sign[2] =  cell.v3>=isovalue ? true:false ;
+	sign[3] =  cell.v4>=isovalue ? true:false ;
 			
-				sign[0] =  cell.v1>=isovalue ? true:false ;
-				sign[1] =  cell.v2>=isovalue ? true:false ;
-				sign[2] =  cell.v3>=isovalue ? true:false ;
-				sign[3] =  cell.v4>=isovalue ? true:false ;
-			
-			//output << sign[0] << " " << sign[1] << " " << sign[2] << " " << sign[3] <<"\n" <<"\n";
+	//output << sign[0] << " " << sign[1] << " " << sign[2] << " " << sign[3] <<"\n" <<"\n";
 
-			//Checking if the isovalue intersects the cell
-			//if at least one of the vertex is different there's a isoline in the cell
-			if(!(sign[0] == sign[1] && sign[0] == sign[2] && sign[0] == sign[3] 
-					&& sign[1] == sign[2] && sign[1] == sign[3] && sign[2] == sign[3])){
+	//Checking if the isovalue intersects the cell
+	//if at least one of the vertex is different there's a isoline in the cell
+	if(!(sign[0] == sign[1] && sign[0] == sign[2] && sign[0] == sign[3] 
+			&& sign[1] == sign[2] && sign[1] == sign[3] && sign[2] == sign[3])){
 				
-				//if it is a diagonal case
-				if(sign[0]==sign[2] && sign[1]==sign[3]){ 
-					//output << "Diagonal case Cellnumber: " << i << "\n" << "\n";
+		//if it is a diagonal case
+		if(sign[0]==sign[2] && sign[1]==sign[3]){ 
+			//output << "Diagonal case Cellnumber: " << i << "\n" << "\n";
 					
-					Vector2f points[4]; 
-					//calculate the intersection points
-					Vector2f point1 = makeVector2f(calculateIntersection(cell.v1, cell.v2, cell.p1[0], cell.p2[0]), cell.p1[1]);
-					Vector2f point2 = makeVector2f(cell.p2[0], calculateIntersection(cell.v3, cell.v2, cell.p3[1], cell.p2[1]));
-					Vector2f point3 = makeVector2f(calculateIntersection(cell.v4, cell.v3, cell.p4[0], cell.p3[0]), cell.p3[1]);
-					Vector2f point4 = makeVector2f(cell.p4[0], calculateIntersection(cell.v4, cell.v1, cell.p4[1], cell.p1[1]));
+			Vector2f points[4]; 
+			//calculate the intersection points
+			Vector2f point1 = makeVector2f(calculateIntersection(cell.v1, cell.v2, cell.p1[0], cell.p2[0]), cell.p1[1]);
+			Vector2f point2 = makeVector2f(cell.p2[0], calculateIntersection(cell.v3, cell.v2, cell.p3[1], cell.p2[1]));
+			Vector2f point3 = makeVector2f(calculateIntersection(cell.v4, cell.v3, cell.p4[0], cell.p3[0]), cell.p3[1]);
+			Vector2f point4 = makeVector2f(cell.p4[0], calculateIntersection(cell.v4, cell.v1, cell.p4[1], cell.p1[1]));
 
-					//output << sign[3] << "\n";
-					bool check = sign[3];
-					//output << check << "\n";
+			//output << sign[3] << "\n";
+			bool check = sign[3];
+			//output << check << "\n";
 					
-					//points clockwise from upper line
-					if(check == true){
-						points[0] = point3;
-						points[1] = point2;
-						points[2] = point1;
-						points[3] = point4;
-
-					}
-					//points clockwise from left line
-					else{
-						points[0] = point4;
-						points[1] = point3;
-						points[2] = point2;
-						points[3] = point1;
-					}
-
-					//do the Asymptotic decider stratagy
-					if(asymptotic == true){
-						
-					}
-
-					//do the midpoint stratagy
-					else{
-						float midpoint = (cell.v1+cell.v2+cell.v3+cell.v4)*1/4;
-						bool plus = midpoint>=isovalue ? true:false;
-
-						//start with a point with a bigger value
-						if(plus==true){
-							viewer->addLine(points[0], points[1], color, 1);
-							viewer->addLine(points[2], points[3], color, 1);
-
-						}
-						//start with a point with a smaler value
-						else{
-							viewer->addLine(points[0], points[3], color, 1);
-							viewer->addLine(points[1], points[2], color, 1);
-						}
-					}
-				}
-
-				else{
-				//if it is the other two cases
-					Vector2f pInter [2]; 
-					int count=0;
-
-					if(sign[0]!=sign[1]){
-						pInter[count]=makeVector2f(calculateIntersection(cell.v1, cell.v2, cell.p1[0], cell.p2[0]), cell.p1[1]);
-						//output << "down " << pInter[count] << "\n";
-						count++;
-					}
-
-					if(sign[1]!=sign[2]){
-						pInter[count]=makeVector2f(cell.p2[0], calculateIntersection(cell.v3, cell.v2, cell.p3[1], cell.p2[1]));					
-						//output << "left" << pInter[count] << "\n";
-						count++;
-					}
-
-					if(sign[2]!=sign[3]){
-						pInter[count]=makeVector2f(calculateIntersection(cell.v4, cell.v3, cell.p4[0], cell.p3[0]), cell.p3[1]);			
-						//output << "up" << pInter[count] << "\n";
-						count++;
-					}
-					
-					if(sign[3]!=sign[0]){
-						pInter[count]=makeVector2f(cell.p4[0], calculateIntersection(cell.v4, cell.v1, cell.p4[1], cell.p1[1]));					
-						//output << "right" << pInter[count] << "\n";
-					}
-
-					viewer->addLine(pInter[0], pInter[1], color, 1);
-				}
+			//points clockwise from upper line
+			if(check == true){
+				points[0] = point3;
+				points[1] = point2;
+				points[2] = point1;
+				points[3] = point4;
 
 			}
+			//points clockwise from left line
+			else{
+				points[0] = point4;
+				points[1] = point3;
+				points[2] = point2;
+				points[3] = point1;
+			}
+
+			//do the Asymptotic decider stratagy
+			if(asymptotic == true){
+				
+			}
+
+			//do the midpoint stratagy
+			else{
+				float midpoint = (cell.v1+cell.v2+cell.v3+cell.v4)*1/4;
+				bool plus = midpoint>=isovalue ? true:false;
+
+				//start with a point with a bigger value
+				if(plus==true){
+					viewer->addLine(points[0], points[1], color, 1);
+					viewer->addLine(points[2], points[3], color, 1);
+
+				}
+
+				//start with a point with a smaler value
+				else{
+					viewer->addLine(points[0], points[3], color, 1);
+					viewer->addLine(points[1], points[2], color, 1);
+				}
+			}
+		}
+
+		else{
+		//if it is the other two cases
+			Vector2f pInter [2]; 
+			int count=0;
+
+			if(sign[0]!=sign[1]){
+				pInter[count]=makeVector2f(calculateIntersection(cell.v1, cell.v2, cell.p1[0], cell.p2[0]), cell.p1[1]);
+				//output << "down " << pInter[count] << "\n";
+				count++;
+			}
+
+			if(sign[1]!=sign[2]){
+				pInter[count]=makeVector2f(cell.p2[0], calculateIntersection(cell.v3, cell.v2, cell.p3[1], cell.p2[1]));					
+				//output << "left" << pInter[count] << "\n";
+				count++;
+			}
+
+			if(sign[2]!=sign[3]){
+				pInter[count]=makeVector2f(calculateIntersection(cell.v4, cell.v3, cell.p4[0], cell.p3[0]), cell.p3[1]);			
+				//output << "up" << pInter[count] << "\n";
+				count++;
+			}
+					
+			if(sign[3]!=sign[0]){
+				pInter[count]=makeVector2f(cell.p4[0], calculateIntersection(cell.v4, cell.v1, cell.p4[1], cell.p1[1]));					
+				//output << "right" << pInter[count] << "\n";
+			}
+
+			viewer->addLine(pInter[0], pInter[1], color, 1);
+		}
+	}
 }
 
 //reversed linear interpolation (in 1D domain)
