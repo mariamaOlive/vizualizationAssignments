@@ -31,10 +31,11 @@ public:
 
 //Methods
 public:
-	void DrawGrid(ScalarField2 field);
-    void DrawScalarField();
+	void DrawGrid();
+    void DrawIsoline();
 	float calculateIntersection(float vMin, float vMax, float xMin, float xMax);
 	void DrawIntersection(Cell cell);
+	void LoadFile();
     virtual QWidget* createViewer();
 
 //Attributes
@@ -44,6 +45,7 @@ public:
 	string ScalarfieldFilename;
 	float isovalue;
 	bool asymptotic;
+	ScalarField2 field;
 
 protected:
     GLGeometryViewer* viewer;

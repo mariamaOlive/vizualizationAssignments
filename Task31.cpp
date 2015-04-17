@@ -21,7 +21,10 @@ IMPLEMENT_GEOX_CLASS( Task31, 0)
 	ADD_FLOAT32_PROP(isovalue,0)
 	ADD_SEPARATOR("Ambiguity strategy")
 	ADD_BOOLEAN_PROP(asymptotic,0)
-    ADD_NOARGS_METHOD(Task31::DrawScalarField)
+	ADD_NOARGS_METHOD(Task31::LoadFile)
+	ADD_NOARGS_METHOD(Task31::DrawGrid)
+    ADD_NOARGS_METHOD(Task31::DrawIsoline)
+	
 }
 
 QWidget* Task31::createViewer()
@@ -41,7 +44,19 @@ Task31::Task31()
 
 Task31::~Task31() {}
 
-void Task31::DrawGrid(ScalarField2 field){
+void Task31::LoadFile(){
+	viewer->clear();
+	 //Load scalar field
+    if (!field.load(ScalarfieldFilename))
+    {
+        output << "Error loading field file " << ScalarfieldFilename << "\n";
+        return;
+    }
+}
+
+void Task31::DrawGrid(){
+	
+	
 	Vector4f color = makeVector4f(1,1,1,1);
 
 	Vector2f minBox= makeVector2f(field.boundMin()[0], field.boundMin()[1]);
@@ -72,19 +87,9 @@ void Task31::DrawGrid(ScalarField2 field){
     viewer->refresh();
 }
 
-void Task31::DrawScalarField()
+void Task31::DrawIsoline()
 {
-    viewer->clear();
-
-    //Load scalar field
-    ScalarField2 field;
-    if (!field.load(ScalarfieldFilename))
-    {
-        output << "Error loading field file " << ScalarfieldFilename << "\n";
-        return;
-    }
-
-	DrawGrid(field);
+  
 
 	//Loading cell into a vector
 	for(int i=0; i<field.dims()[0]-1;i=i++){		
