@@ -34,7 +34,7 @@ public:
 	void DrawGrid();
     void DrawIsoline();
 	float calculateIntersection(float vMin, float vMax, float xMin, float xMax);
-	void DrawIntersection(Cell cell);
+	void DrawIntersection(Cell cell, Vector4f color);
 	void LoadFile();
     virtual QWidget* createViewer();
 

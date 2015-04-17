@@ -89,7 +89,12 @@ void Task31::DrawGrid(){
 
 void Task31::DrawIsoline()
 {
-  
+	//Radomising the colour of the lines
+	float R = ((double) rand() / (RAND_MAX));
+	float G = ((double) rand() / (RAND_MAX)); 
+	float B = ((double) rand() / (RAND_MAX));
+
+	Vector4f color= makeVector4f(R,G,B,1);
 
 	//Loading cell into a vector
 	for(int i=0; i<field.dims()[0]-1;i=i++){		
@@ -107,7 +112,7 @@ void Task31::DrawIsoline()
 			cell.p4=field.nodePosition(i,j+1);
 			
 			//Going through each cell and checking if there are isoline intersecting
-			DrawIntersection(cell);
+			DrawIntersection(cell, color);
 		}
 	}
 	viewer->refresh();
@@ -116,7 +121,7 @@ void Task31::DrawIsoline()
 
 //for each cell, get value for each of the four points and compare them to isovalue, (true/false smaller or bigger?)
 // if all are smaller/bigger do nothing, if one point is diffrent, if two point are diffrent (check for diagonal case)
-void Task31::DrawIntersection(Cell cellAnalysed){
+void Task31::DrawIntersection(Cell cellAnalysed, Vector4f color){
 	Cell cell = cellAnalysed;
 	bool sign[4];
 			
@@ -173,14 +178,14 @@ void Task31::DrawIntersection(Cell cellAnalysed){
 
 				//start with a point with a bigger value
 				if(plus==true){
-					viewer->addLine(points[0], points[1]);
-					viewer->addLine(points[2], points[3]);
+					viewer->addLine(points[0], points[1], color, 1);
+					viewer->addLine(points[2], points[3], color, 1);
 
 				}
 				//start with a point with a smaler value
 				else{
-					viewer->addLine(points[0], points[3]);
-					viewer->addLine(points[1], points[2]);
+					viewer->addLine(points[0], points[3], color, 1);
+					viewer->addLine(points[1], points[2], color, 1);
 				}
 			}
 		}
@@ -213,7 +218,7 @@ void Task31::DrawIntersection(Cell cellAnalysed){
 				//output << "right" << pInter[count] << "\n";
 			}
 
-			viewer->addLine(pInter[0], pInter[1]);
+			viewer->addLine(pInter[0], pInter[1], color, 1);
 		}
 	}
 }
