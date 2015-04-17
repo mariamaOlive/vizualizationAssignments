@@ -33,7 +33,7 @@ QWidget* Task32::createViewer()
 Task32::Task32()
 {
     viewer = NULL;
-    ScalarfieldFilename = "SimpleGrid.am";
+    ScalarfieldFilename = "IsabelTemperature.am";
 	isovalue = 1;
 	asymptotic = false;
 	N=10;
@@ -87,8 +87,8 @@ void Task32::DrawScalarField()
 	//DrawGrid(field);
 
 	//Get the minimum/maximum value in that field
-    float32 min = std::numeric_limits<float32>::max();
-    float32 max = -std::numeric_limits<float32>::max();
+    min = std::numeric_limits<float32>::max();
+    max = -std::numeric_limits<float32>::max();
     for(size_t j=0; j<field.dims()[1]; j++)
     {
         for(size_t i=0; i< field.dims()[0]; i++)
@@ -104,7 +104,15 @@ void Task32::DrawScalarField()
 	//Reading the cells 
 	for(float t=min; t<=max; t=t+gap){
 		isovalue=t;
-		//output << "Calculating isovalue:"<<t<< "\n";
+
+		//Defining the color of the isoline
+		float dif= abs(max-min);
+		float R = (1 * ((isovalue-min)*100)/dif) / 100;
+		float G = (1 * (100 - ((isovalue-min)*100)/dif)) / 100; 
+		float B = 0;
+		Vector4f color= makeVector4f(R,G,B,1);
+		
+			//output << "Calculating isovalue:"<<t<< "\n";
 		for(int i=0; i<field.dims()[0]-1;i=i++){		
 			for(int j=0; j<field.dims()[1]-1; j=j++){
 				Cell1 cell;
@@ -123,16 +131,17 @@ void Task32::DrawScalarField()
 				// if all are smaller/bigger do nothing, if one point is diffrent, if two point are diffrent (check for diagonal case)
 
 				//Going through each cell and checking if there are isoline intersecting
-				DrawIntersection(cell);
+				DrawIntersection(cell, color);
 
 			}
-		}
+		}	
 	}
 	viewer->refresh();
 }
 
 
-void Task32::DrawIntersection(Cell1 cellAnalysed){
+void Task32::DrawIntersection(Cell1 cellAnalysed, Vector4f color){
+
 	Cell1 cell = cellAnalysed;
 			bool sign[4];
 			
@@ -193,14 +202,14 @@ void Task32::DrawIntersection(Cell1 cellAnalysed){
 
 						//start with a point with a bigger value
 						if(plus==true){
-							viewer->addLine(points[0], points[1]);
-							viewer->addLine(points[2], points[3]);
+							viewer->addLine(points[0], points[1], color, 1);
+							viewer->addLine(points[2], points[3], color, 1);
 
 						}
 						//start with a point with a smaler value
 						else{
-							viewer->addLine(points[0], points[3]);
-							viewer->addLine(points[1], points[2]);
+							viewer->addLine(points[0], points[3], color, 1);
+							viewer->addLine(points[1], points[2], color, 1);
 						}
 					}
 				}
@@ -233,7 +242,7 @@ void Task32::DrawIntersection(Cell1 cellAnalysed){
 						//output << "right" << pInter[count] << "\n";
 					}
 
-					viewer->addLine(pInter[0], pInter[1]);
+					viewer->addLine(pInter[0], pInter[1], color, 1);
 				}
 
 			}
