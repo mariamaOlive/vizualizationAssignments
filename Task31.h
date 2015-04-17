@@ -43,6 +43,7 @@ public:
 	vector<Cell> vectorCells;
 	string ScalarfieldFilename;
 	float isovalue;
+	bool asymptotic;
 
 protected:
     GLGeometryViewer* viewer;

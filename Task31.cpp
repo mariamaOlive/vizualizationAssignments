@@ -18,6 +18,7 @@ IMPLEMENT_GEOX_CLASS( Task31, 0)
     ADD_SEPARATOR("Scalarfield")
     ADD_STRING_PROP(ScalarfieldFilename, 0)
 	ADD_FLOAT32_PROP(isovalue,0)
+	ADD_BOOLEAN_PROP(asymptotic,0)
     ADD_NOARGS_METHOD(Task31::DrawScalarField)
 }
 
@@ -33,26 +34,29 @@ Task31::Task31()
     viewer = NULL;
     ScalarfieldFilename = "SimpleGrid.am";
 	isovalue = 1;
+	asymptotic = false;
 }
 
 Task31::~Task31() {}
 
 void Task31::DrawGrid(ScalarField2 field){
+	Vector4f color = makeVector4f(1,1,1,1);
+
 	Vector2f minBox= makeVector2f(field.boundMin()[0], field.boundMin()[1]);
 	Vector2f maxBox= makeVector2f(field.boundMax()[0], field.boundMax()[1]);
 
 	//Adding boundaries of the grid (boundBox)
-	viewer->addLine(makeVector2f(minBox[0],minBox[1]), makeVector2f(maxBox[0],minBox[1]));
-	viewer->addLine(makeVector2f(maxBox[0],minBox[1]), makeVector2f(maxBox[0],maxBox[1]));
-	viewer->addLine(makeVector2f(maxBox[0],maxBox[1]), makeVector2f(minBox[0],maxBox[1]));
-	viewer->addLine(makeVector2f(minBox[0],maxBox[1]), makeVector2f(minBox[0],minBox[1]));
+	viewer->addLine(makeVector2f(minBox[0],minBox[1]), makeVector2f(maxBox[0],minBox[1]),color,1);
+	viewer->addLine(makeVector2f(maxBox[0],minBox[1]), makeVector2f(maxBox[0],maxBox[1]),color,1);
+	viewer->addLine(makeVector2f(maxBox[0],maxBox[1]), makeVector2f(minBox[0],maxBox[1]),color,1);
+	viewer->addLine(makeVector2f(minBox[0],maxBox[1]), makeVector2f(minBox[0],minBox[1]),color,1);
 
 	//Adding grid line horizontally
 	for(int i=1;i<field.dims()[1]-1;i++){
 		Vector2f p1= field.nodePosition(0,i);	
 		Vector2f p2= field.nodePosition(field.dims()[0]-1,i);
 	
-		viewer->addLine(p1,p2);
+		viewer->addLine(p1,p2,color,1);
 	}
 
 	//Adding grid line vertically
@@ -60,7 +64,7 @@ void Task31::DrawGrid(ScalarField2 field){
 		Vector2f p1= field.nodePosition(i, 0);	
 		Vector2f p2= field.nodePosition(i,field.dims()[1]-1);
 	
-		viewer->addLine(p1,p2);
+		viewer->addLine(p1,p2,color,1);
 	}
 
     viewer->refresh();
@@ -156,6 +160,56 @@ void Task31::DrawScalarField()
 				//if it is a diagonal case
 				if(sign[0]==sign[2] && sign[1]==sign[3]){ 
 					output << "Diagonal case Cellnumber: " << i << "\n" << "\n";
+					
+					Vector2f points[4]; 
+					//calculate the intersection points
+					Vector2f point1 = makeVector2f(calculateIntersection(cell.v1, cell.v2, cell.p1[0], cell.p2[0]), cell.p1[1]);
+					Vector2f point2 = makeVector2f(cell.p2[0], calculateIntersection(cell.v3, cell.v2, cell.p3[1], cell.p2[1]));
+					Vector2f point3 = makeVector2f(calculateIntersection(cell.v4, cell.v3, cell.p4[0], cell.p3[0]), cell.p3[1]);
+					Vector2f point4 = makeVector2f(cell.p4[0], calculateIntersection(cell.v4, cell.v1, cell.p4[1], cell.p1[1]));
+
+					//output << sign[3] << "\n";
+					bool check = sign[3];
+					output << check << "\n";
+					
+					//points clockwise from upper line
+					if(check == true){
+						points[0] = point3;
+						points[1] = point2;
+						points[2] = point1;
+						points[3] = point4;
+
+					}
+					//points clockwise from left line
+					else{
+						points[0] = point4;
+						points[1] = point3;
+						points[2] = point2;
+						points[3] = point1;
+					}
+
+					//do the Asymptotic decider stratagy
+					if(asymptotic == true){
+						
+					}
+
+					//do the midpoint stratagy
+					else{
+						float midpoint = (cell.v1+cell.v2+cell.v3+cell.v4)*1/4;
+						bool plus = midpoint>=isovalue ? true:false;
+
+						//start with a point with a bigger value
+						if(plus==true){
+							viewer->addLine(points[0], points[1]);
+							viewer->addLine(points[2], points[3]);
+
+						}
+						//start with a point with a smaler value
+						else{
+							viewer->addLine(points[0], points[3]);
+							viewer->addLine(points[1], points[2]);
+						}
+					}
 				}
 
 				else{
