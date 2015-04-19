@@ -37,8 +37,8 @@ QWidget* Task31::createViewer()
 Task31::Task31()
 {
     viewer = NULL;
-    ScalarfieldFilename = "SimpleGrid.am";
-	isovalue = 1;
+    ScalarfieldFilename = "SmallGrid.am";
+	isovalue = 0;
 	asymptotic = false;
 }
 
@@ -125,8 +125,7 @@ void Task31::DrawIntersection(Cell cellAnalysed, Vector4f color){
 	Cell cell = cellAnalysed;
 	bool sign[4];
 			
-	//Comparing each vertex to the isovalue
-			
+	//Comparing each vertex to the isovalue and attributing corresponding sign
 	sign[0] =  cell.v1>=isovalue ? true:false ;
 	sign[1] =  cell.v2>=isovalue ? true:false ;
 	sign[2] =  cell.v3>=isovalue ? true:false ;
@@ -135,7 +134,7 @@ void Task31::DrawIntersection(Cell cellAnalysed, Vector4f color){
 	//output << sign[0] << " " << sign[1] << " " << sign[2] << " " << sign[3] <<"\n" <<"\n";
 
 	//Checking if the isovalue intersects the cell
-	//if at least one of the vertex is different there's a isoline in the cell
+	//if at least one of the vertex is different from the rest there's a isoline in the cell
 	if(!(sign[0] == sign[1] && sign[0] == sign[2] && sign[0] == sign[3] 
 			&& sign[1] == sign[2] && sign[1] == sign[3] && sign[2] == sign[3])){
 				
@@ -149,7 +148,8 @@ void Task31::DrawIntersection(Cell cellAnalysed, Vector4f color){
 			Vector2f point3 = makeVector2f(calculateIntersection(cell.v4, cell.v3, cell.p4[0], cell.p3[0]), cell.p3[1]);
 			Vector2f point4 = makeVector2f(cell.p4[0], calculateIntersection(cell.v4, cell.v1, cell.p4[1], cell.p1[1]));
 
-			bool check = sign[3];				
+			bool check = sign[3];	
+			
 			//points clockwise from upper line
 			if(check == true){
 				points[0] = point3;
@@ -166,14 +166,26 @@ void Task31::DrawIntersection(Cell cellAnalysed, Vector4f color){
 				points[3] = point1;
 			}
 
-			//do the Asymptotic decider stratagy
+			//do the Asymptotic decider strategy
 			if(asymptotic == true){
-				
+				float beta =  (cell.v1*cell.v3-cell.v2*cell.v4) / (cell.v1+cell.v3-cell.v2-cell.v4); // from slide 62, Lecture 04
+
+				if (isovalue > beta) {
+					// connect points corresponding to (a,b) and (c,d)
+					viewer->addLine(points[0], points[3], color, 1);
+					viewer->addLine(points[1], points[2], color, 1);
+				}
+				else {
+					// connect points corresponding to (a,d) and (b,c)
+					viewer->addLine(points[0], points[1], color, 1);
+					viewer->addLine(points[2], points[3], color, 1);
+				}
 			}
 
-			//do the midpoint stratagy
+			//do the midpoint strategy
 			else{
 				float midpoint = (cell.v1+cell.v2+cell.v3+cell.v4)*1/4;
+
 				bool plus = midpoint>=isovalue ? true:false;
 
 				//start with a point with a bigger value

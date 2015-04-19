@@ -1,0 +1,5 @@
+18 April
+
+One of the cases when it`s better is for SmallGrid file with 0 as the isovalue.
+	- Midpoint decider plots the inverted lines connecting the dots
+	- Assymptotic plots it right (check it!) 
