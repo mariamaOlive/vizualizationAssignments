@@ -169,6 +169,8 @@ void Task52::RandomSeeding(){
 
 	for(int i = 0; i < n; i++){
 		//random values
+		float randx = xmin + (float) (rand()) /(float) (RAND_MAX/(xmax-xmin));
+		float randy = ymin + (float) (rand()) /(float) (RAND_MAX/(ymax-ymin));
 
 		//output << "randx: " << randx << " , randy: " << randy << "\n";
 		RungeKuttaStreamlines(field, randx, randy);
