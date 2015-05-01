@@ -24,6 +24,8 @@ IMPLEMENT_GEOX_CLASS( Task52, 0)
 	ADD_FLOAT32_PROP(MinSpeed, 0)
     ADD_FLOAT32_PROP(ArrowScale, 0)
 	ADD_INT32_PROP(n,0) 
+	ADD_INT32_PROP(GridPointsX,0) 
+	ADD_INT32_PROP(GridPoitnsY,0) 
 
 	ADD_SEPARATOR("RungeKutta")
 	ADD_FLOAT32_PROP(RKStepSize,0)
@@ -34,6 +36,7 @@ IMPLEMENT_GEOX_CLASS( Task52, 0)
     ADD_NOARGS_METHOD(Task52::DrawVectorField)
 	ADD_NOARGS_METHOD(Task52::RungeKuttaStreamlines)
 	ADD_NOARGS_METHOD(Task52::RandomSeeding)
+	ADD_NOARGS_METHOD(Task52::GridSeeding)
 }
 
 QWidget* Task52::createViewer()
@@ -61,6 +64,10 @@ Task52::Task52()
 
 	//number of seeding points
 	n = 1;
+
+	//number of grid points in each direction
+	GridPointsX = 2;
+	GridPoitnsY = 1;
 }
 
 Task52::~Task52() {}
@@ -204,6 +211,19 @@ void Task52::RandomSeeding(){
 		RungeKuttaStreamlines(field, randx, randy);
 
 	}
+}
+
+void Task52::GridSeeding(){
+	VectorField2 field;
+
+    //Load the vector field
+    if (!field.load(VectorfieldFilename))
+    {
+        output << "Error loading field file " << VectorfieldFilename << "\n";
+        return;
+    }
+
+
 }
 
 //Runge-Kutta

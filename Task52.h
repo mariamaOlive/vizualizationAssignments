@@ -37,6 +37,7 @@ public:
 	void RungeKuttaStreamlines();
 
 	void RandomSeeding();
+	void GridSeeding();
 	void RungeKuttaStreamlines(VectorField2 field, float startX, float startY);
 
 //Attributes
@@ -65,6 +66,10 @@ public:
 
 	//number of seeding points
 	int n;
+
+	//number of grid points in each direction
+	int GridPointsX;
+	int GridPoitnsY;
 
 
 protected:
