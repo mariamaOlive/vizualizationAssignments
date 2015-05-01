@@ -84,6 +84,7 @@ void Task52::DrawVectorField()
         for(float32 y=field.boundMin()[1]; y<=field.boundMax()[1]; y+=0.1)
         {
             Vector2f vec = field.sample(x,y);
+			output << vec <<"\n";
             vec.normalize();
 
             viewer->addLine(x, y, x + ArrowScale*vec[0], y + ArrowScale*vec[1]);
@@ -137,7 +138,7 @@ void Task52::RungeKuttaStreamlines(){
     }
 
 	Vector4f RKcolor = makeVector4f(1,0,0,1);
-	Vector2f startPoint = makeVector2f(XStart,YStart);
+	Vector2f startPoint = makeVector2f((field.boundMin()[0] + field.boundMax()[0])/2,(field.boundMin()[1] + field.boundMax()[1])/2);
 	Vector2f x = makeVector2f(startPoint[0], startPoint[1]);
 
 	for(int i = 0; i < RKSteps; i++){
@@ -152,7 +153,7 @@ void Task52::RungeKuttaStreamlines(){
 		Vector2f v3 = field.sample(v3p[0],v3p[1]);
 		
 		Vector2f v4p = makeVector2f((x[0]+RKStepSize*v3[0]),(x[1]+RKStepSize*v3[1]));
-		Vector2f v4 = field.sample(v3p[0],v3p[1]);
+		Vector2f v4 = field.sample(v4p[0],v4p[1]);
 
 	//Combine the 4 vectors to get the end position
 		Vector2f x1 = makeVector2f(x[0]+RKStepSize*(v1[0]/6 + v2[0]/3 + v3[0]/3 + v4[0]/6), x[1]+RKStepSize*(v1[1]/6 + v2[1]/3 + v3[1]/3 + v4[1]/6));
