@@ -42,7 +42,8 @@ public:
 	//start values
 	float XStart;
 	float YStart;
-	float MaxDistance;
+	float MaxLength;
+	float MinSpeed;
 	bool backwards;
 
     ///Length of the arrows		TO BE REMOVED

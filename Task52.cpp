@@ -20,7 +20,8 @@ IMPLEMENT_GEOX_CLASS( Task52, 0)
     ADD_STRING_PROP(VectorfieldFilename, 0)
 	ADD_FLOAT32_PROP(XStart, 0)
 	ADD_FLOAT32_PROP(YStart, 0)
-	ADD_FLOAT32_PROP(MaxDistance, 0)
+	ADD_FLOAT32_PROP(MaxLength, 0)
+	ADD_FLOAT32_PROP(MinSpeed, 0)
     ADD_FLOAT32_PROP(ArrowScale, 0)
 
 	ADD_SEPARATOR("RungeKutta")
@@ -48,7 +49,8 @@ Task52::Task52()
 	//start values
 	XStart = 1;
 	YStart = 0;
-	MaxDistance = 5.3;
+	MaxLength = 5.3;
+	MinSpeed = 0.1;
 	backwards = false;
 
 	//Runge-Kutta values
@@ -103,15 +105,24 @@ void Task52::RungeKuttaStreamlines(){
 	Vector4f RKcolor = backwards ? makeVector4f(1,0,0,1) : makeVector4f(0,1,0,1);
 	
 	//Defining the start point
-	Vector2f startPoint = makeVector2f((field.boundMin()[0] + field.boundMax()[0])/2,(field.boundMin()[1] + field.boundMax()[1])/2);
+	Vector2f startPoint = makeVector2f((field.boundMin()[0] + field.boundMax()[0])/2,(field.boundMin()[1] + field.boundMax()[1])/2); // starting in the middle
+	//Vector2f startPoint = makeVector2f(field.boundMin()[0], field.boundMin()[1]);
 
 	Vector2f x = makeVector2f(startPoint[0], startPoint[1]);
 
 	RKStepSize = backwards ? -RKStepSize : RKStepSize; // if "backwards" is checked, inverts sign of integration step
-	float a, b, length;
-	float accLength = 0;
+	float a, b, length, speed;
+	float arcLength = 0;
+	bool outOfBounds = false;
+	bool tooSlow = false;
 
-	for(int i = 0; i < RKSteps; i++){
+	//Checks if initial point is out of boundaries
+	if ((x[0] < field.boundMin()[0])||(x[0] > field.boundMax()[0])||(x[1] < field.boundMin()[1])||(x[1] > field.boundMax()[1])) {
+		outOfBounds = true;
+		output << "Out of bounds! \n";
+	}
+
+	for(int i = 0; ((i < RKSteps) && (arcLength < MaxLength) && (!outOfBounds) && (!tooSlow)); i++){
 
 	//The 4 vectors of th RK method
 		Vector2f v1 = field.sample(x[0],x[1]);
@@ -132,16 +143,33 @@ void Task52::RungeKuttaStreamlines(){
 	//Combine the 4 vectors to get the end position
 		Vector2f x1 = makeVector2f(x[0]+RKStepSize*(v1[0]/6 + v2[0]/3 + v3[0]/3 + v4[0]/6), x[1]+RKStepSize*(v1[1]/6 + v2[1]/3 + v3[1]/3 + v4[1]/6));
 
-		viewer->addPoint(x);
-        viewer->addLine(x, x1, RKcolor, 2);
+	//Calculates arc length
 		a = x1[0]-x[0];
 		b = x1[1]-x[1];
 		length = sqrt(pow(a,2)+pow(b,2));
-		accLength += length;
-		output << "length: " << length << " , total: " << accLength << "\n";
+		arcLength += length;
 
-
-		x = x1;
+	//Calculates speed (actual vector size) by sampling
+		Vector2f sampleVector = field.sample(x1[0], x1[1]);
+		a = sampleVector[0]-x1[0];
+		b = sampleVector[1]-x1[1];
+		speed = sqrt(pow(a,2)+pow(b,2));
+		output << "speed: " << speed << "\n";
+		
+		//Checks boundary limits
+		if ((x1[0] < field.boundMin()[0])||(x1[0] > field.boundMax()[0])||(x1[1] < field.boundMin()[1])||(x1[1] > field.boundMax()[1])) {
+			outOfBounds = true;
+			output << "Out of bounds! \n";
+		}
+		else if (speed < MinSpeed) {
+			tooSlow = true;
+			output << "Vector speed too slow... \n";
+		}
+		else {
+			viewer->addPoint(x);
+			viewer->addLine(x, x1, RKcolor, 2);	
+			x = x1;
+		}
 	}
 	viewer->refresh();
 }
