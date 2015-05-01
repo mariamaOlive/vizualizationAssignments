@@ -24,7 +24,6 @@ public:
 
 //Methods
 public:
-    void DrawVectorField();	//drawVectorField to be removed later
     virtual QWidget* createViewer();
 	
 	//Euler
@@ -36,16 +35,9 @@ public:
 //Attributes
 public:
 
-    ///File name of the vector field
-    string VectorfieldFilename;
-
 	//start values
 	float XStart;
 	float YStart;
-	float MaxDistance;
-
-    ///Length of the arrows		TO BE REMOVED
-    float ArrowScale;
 
 	//Euler values
 	float EulerStepSize;
