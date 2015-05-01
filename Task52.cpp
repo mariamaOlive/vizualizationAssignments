@@ -223,6 +223,12 @@ void Task52::GridSeeding(){
         return;
     }
 
+	float xmin = field.boundMin()[0];
+	float xmax = field.boundMax()[0];
+	float ymin = field.boundMin()[1];
+	float ymax = field.boundMax()[1];
+
+	int points = n / (GridPointsX + GridPointsY);
 
 }
 
