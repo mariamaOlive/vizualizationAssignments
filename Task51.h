@@ -40,6 +40,7 @@ public:
 	float XStart;
 	float YStart;
 
+
 	//Euler values
 	float EulerStepSize;
 	int EulerSteps;

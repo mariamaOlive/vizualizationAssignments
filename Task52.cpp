@@ -22,17 +22,11 @@ IMPLEMENT_GEOX_CLASS( Task52, 0)
 	ADD_FLOAT32_PROP(MaxDistance, 0)
     ADD_FLOAT32_PROP(ArrowScale, 0)
 
-	ADD_SEPARATOR("Euler")	
-	ADD_FLOAT32_PROP(EulerStepSize,0)
-	ADD_INT32_PROP(EulerSteps,0)
-
 	ADD_SEPARATOR("RungeKutta")
 	ADD_FLOAT32_PROP(RKStepSize,0)
 	ADD_INT32_PROP(RKSteps,0)  
 
-
     ADD_NOARGS_METHOD(Task52::DrawVectorField)
-	ADD_NOARGS_METHOD(Task52::EulerStreamlines)
 	ADD_NOARGS_METHOD(Task52::RungeKuttaStreamlines)
 }
 
@@ -52,10 +46,6 @@ Task52::Task52()
 	XStart = 1;
 	YStart = 0;
 	MaxDistance = 5.3;
-
-	//Euler values
-	EulerStepSize = 0.1;
-	EulerSteps = 100;
 
 	//Runge-Kutta values
 	RKStepSize = 0.3;
@@ -84,7 +74,6 @@ void Task52::DrawVectorField()
         for(float32 y=field.boundMin()[1]; y<=field.boundMax()[1]; y+=0.1)
         {
             Vector2f vec = field.sample(x,y);
-			output << vec <<"\n";
             vec.normalize();
 
             viewer->addLine(x, y, x + ArrowScale*vec[0], y + ArrowScale*vec[1]);
@@ -92,36 +81,6 @@ void Task52::DrawVectorField()
     }
 
     viewer->refresh();
-}
-
-//Euler
-void Task52::EulerStreamlines(){
-	
-	//Determining the start point
-	Vector2f startPoint= makeVector2f(XStart, YStart);
-
-	Vector2f currentPoint = startPoint;
-	//Calculating the line between steps
-	for(int i=0; i<EulerSteps; i++){
-		
-		float nextPointX;
-		float nextPointY;
-
-		Vector2f nextPoint;
-
-		nextPointX= currentPoint[0] +EulerStepSize*(-1)*currentPoint[1];
-		nextPointY= currentPoint[1] +EulerStepSize*currentPoint[0]/2;
-		nextPoint= makeVector2f(nextPointX, nextPointY);
-
-		viewer->addLine(currentPoint, nextPoint);
-		viewer->addPoint(currentPoint);
-
-		currentPoint=nextPoint;
-	}
-
-	//Render the Euler curve
-	viewer->refresh();
-
 }
 
 
@@ -136,8 +95,11 @@ void Task52::RungeKuttaStreamlines(){
         output << "Error loading field file " << VectorfieldFilename << "\n";
         return;
     }
-
+	
+	//Choosing the colour of the line
 	Vector4f RKcolor = makeVector4f(1,0,0,1);
+
+	//Defining the start point
 	Vector2f startPoint = makeVector2f((field.boundMin()[0] + field.boundMax()[0])/2,(field.boundMin()[1] + field.boundMax()[1])/2);
 	Vector2f x = makeVector2f(startPoint[0], startPoint[1]);
 
