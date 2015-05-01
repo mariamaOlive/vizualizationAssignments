@@ -115,7 +115,7 @@ void Task52::RungeKuttaStreamlines(){
 
 	Vector2f x = makeVector2f(startPoint[0], startPoint[1]);
 
-	RKStepSize = backwards ? -RKStepSize : RKStepSize; // if "backwards" is checked, inverts sign of integration step
+	float RKStepSize2 = backwards ? -RKStepSize : RKStepSize; // if "backwards" is checked, inverts sign of integration step
 	float a, b, length, speed;
 	float arcLength = 0;
 	bool outOfBounds = false;
@@ -133,20 +133,20 @@ void Task52::RungeKuttaStreamlines(){
 		Vector2f v1 = field.sample(x[0],x[1]);
 		v1.normalize();
 		
-		Vector2f v2p = makeVector2f((x[0]+RKStepSize*v1[0]/2),(x[1]+RKStepSize*v1[1]/2));
+		Vector2f v2p = makeVector2f((x[0]+RKStepSize2*v1[0]/2),(x[1]+RKStepSize2*v1[1]/2));
 		Vector2f v2 = field.sample(v2p[0],v2p[1]);
 		v2.normalize();
 
-		Vector2f v3p = makeVector2f((x[0]+RKStepSize*v2[0]/2),(x[1]+RKStepSize*v2[1]/2));
+		Vector2f v3p = makeVector2f((x[0]+RKStepSize2*v2[0]/2),(x[1]+RKStepSize2*v2[1]/2));
 		Vector2f v3 = field.sample(v3p[0],v3p[1]);
 		v3.normalize();
 
-		Vector2f v4p = makeVector2f((x[0]+RKStepSize*v3[0]),(x[1]+RKStepSize*v3[1]));
+		Vector2f v4p = makeVector2f((x[0]+RKStepSize2*v3[0]),(x[1]+RKStepSize2*v3[1]));
 		Vector2f v4 = field.sample(v4p[0],v4p[1]);
 		v4.normalize();
 
 	//Combine the 4 vectors to get the end position
-		Vector2f x1 = makeVector2f(x[0]+RKStepSize*(v1[0]/6 + v2[0]/3 + v3[0]/3 + v4[0]/6), x[1]+RKStepSize*(v1[1]/6 + v2[1]/3 + v3[1]/3 + v4[1]/6));
+		Vector2f x1 = makeVector2f(x[0]+RKStepSize2*(v1[0]/6 + v2[0]/3 + v3[0]/3 + v4[0]/6), x[1]+RKStepSize2*(v1[1]/6 + v2[1]/3 + v3[1]/3 + v4[1]/6));
 
 	//Calculates arc length
 		a = x1[0]-x[0];
