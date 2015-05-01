@@ -135,16 +135,24 @@ void Task51::RungeKuttaStreamlines(){
     }
 
 	Vector4f RKcolor = makeVector4f(1,0,0,1);
-	Vector2f x = makeVector2f(XStart,YStart);
+	Vector2f startPoint = makeVector2f(XStart,YStart);
 	//output << "x value : " << x[0] << " , y value: " << x[1] << "\n";
+	Vector2f x = makeVector2f(startPoint[0], startPoint[1]);
 
 	for(int i = 0; i < RKSteps; i++){
 
+	output << "x value : " << x[0] << " , y value: " << x[1] << "\n";	
 	//The 4 vectors of th RK method
-		Vector2f v1 = makeVector2f(-x[1], x[0]/2);
-		Vector2f v2 = makeVector2f((x[0]+RKStepSize*v1[0]/2),(x[1]+RKStepSize*v1[1]/2));
-		Vector2f v3 = makeVector2f((x[0]+RKStepSize*v2[0]/2),(x[1]+RKStepSize*v2[1]/2));
-		Vector2f v4 = makeVector2f((x[0]+RKStepSize*v3[0]),(x[1]+RKStepSize*v3[1]));
+		Vector2f v1 = makeVector2f((-1)*x[1], x[0]/2);
+		
+		Vector2f v2p = makeVector2f((x[0]+RKStepSize*v1[0]/2),(x[1]+RKStepSize*v1[1]/2));
+		Vector2f v2 = makeVector2f((-1)*v2p[1], v2p[0]/2);
+		
+		Vector2f v3p = makeVector2f((x[0]+RKStepSize*v2[0]/2),(x[1]+RKStepSize*v2[1]/2));
+		Vector2f v3 = makeVector2f((-1)*v3p[1], v3p[0]/2);
+		
+		Vector2f v4p = makeVector2f((x[0]+RKStepSize*v3[0]),(x[1]+RKStepSize*v3[1]));
+		Vector2f v4 = makeVector2f((-1)*v4p[1], v4p[0]/2);
 
 		output << "v1 : " << v1 << "\n";
 		output << "v2 : " << v2 << "\n";
@@ -155,7 +163,8 @@ void Task51::RungeKuttaStreamlines(){
 		Vector2f x1 = makeVector2f(x[0]+RKStepSize*(v1[0]/6 + v2[0]/3 + v3[0]/3 + v4[0]/6), x[1]+RKStepSize*(v1[1]/6 + v2[1]/3 + v3[1]/3 + v4[1]/6));
 		output << "x1 : " << x1 << "\n";
 
-        viewer->addLine(x[0], x[1], x1[0], x1[1]);
+		viewer->addPoint(x);
+        viewer->addLine(x, x1);
 
 		x = x1;
 	}
