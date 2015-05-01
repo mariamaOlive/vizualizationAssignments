@@ -145,15 +145,19 @@ void Task52::RungeKuttaStreamlines(){
 
 	//The 4 vectors of th RK method
 		Vector2f v1 = field.sample(x[0],x[1]);
+		v1.normalize();
 		
 		Vector2f v2p = makeVector2f((x[0]+RKStepSize*v1[0]/2),(x[1]+RKStepSize*v1[1]/2));
 		Vector2f v2 = field.sample(v2p[0],v2p[1]);
-		
+		v2.normalize();
+
 		Vector2f v3p = makeVector2f((x[0]+RKStepSize*v2[0]/2),(x[1]+RKStepSize*v2[1]/2));
 		Vector2f v3 = field.sample(v3p[0],v3p[1]);
-		
+		v3.normalize();
+
 		Vector2f v4p = makeVector2f((x[0]+RKStepSize*v3[0]),(x[1]+RKStepSize*v3[1]));
 		Vector2f v4 = field.sample(v4p[0],v4p[1]);
+		v4.normalize();
 
 	//Combine the 4 vectors to get the end position
 		Vector2f x1 = makeVector2f(x[0]+RKStepSize*(v1[0]/6 + v2[0]/3 + v3[0]/3 + v4[0]/6), x[1]+RKStepSize*(v1[1]/6 + v2[1]/3 + v3[1]/3 + v4[1]/6));
