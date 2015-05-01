@@ -23,19 +23,13 @@ IMPLEMENT_GEOX_CLASS( Task52, 0)
 	ADD_FLOAT32_PROP(MaxDistance, 0)
     ADD_FLOAT32_PROP(ArrowScale, 0)
 
-	ADD_SEPARATOR("Euler")	
-	ADD_FLOAT32_PROP(EulerStepSize,0)
-	ADD_INT32_PROP(EulerSteps,0)
-
 	ADD_SEPARATOR("RungeKutta")
 	ADD_FLOAT32_PROP(RKStepSize,0)
 	ADD_INT32_PROP(RKSteps,0)  
 
 	ADD_BOOLEAN_PROP(backwards,0)
 
-
     ADD_NOARGS_METHOD(Task52::DrawVectorField)
-	ADD_NOARGS_METHOD(Task52::EulerStreamlines)
 	ADD_NOARGS_METHOD(Task52::RungeKuttaStreamlines)
 }
 
@@ -57,10 +51,6 @@ Task52::Task52()
 	MaxDistance = 5.3;
 	backwards = false;
 
-	//Euler values
-	EulerStepSize = 0.1;
-	EulerSteps = 100;
-
 	//Runge-Kutta values
 	RKStepSize = 0.3;
 	RKSteps = 30;
@@ -73,8 +63,9 @@ void Task52::DrawVectorField()
 {
     viewer->clear();
 
+	VectorField2 field;
+
     //Load the vector field
-    VectorField2 field;
     if (!field.load(VectorfieldFilename))
     {
         output << "Error loading field file " << VectorfieldFilename << "\n";
@@ -82,9 +73,9 @@ void Task52::DrawVectorField()
     }
 
     //Draw vector directions (constant length)
-    for(float32 x=field.boundMin()[0]; x<=field.boundMax()[0]; x+=0.2)
+    for(float32 x=field.boundMin()[0]; x<=field.boundMax()[0]; x+=0.1)
     {
-        for(float32 y=field.boundMin()[1]; y<=field.boundMax()[1]; y+=0.2)
+        for(float32 y=field.boundMin()[1]; y<=field.boundMax()[1]; y+=0.1)
         {
             Vector2f vec = field.sample(x,y);
             //vec.normalize();
@@ -96,68 +87,50 @@ void Task52::DrawVectorField()
     viewer->refresh();
 }
 
-//Euler
-void Task52::EulerStreamlines(){
-	
-	//Determining the start point
-	Vector2f startPoint= makeVector2f(XStart, YStart);
-
-	Vector4f RKcolor = backwards ? makeVector4f(0,1,0,1) : makeVector4f(0,0,1,1);
-	Vector2f currentPoint = startPoint;
-	//Calculating the line between steps
-	for(int i=0; i<EulerSteps; i++){
-		
-		float nextPointX;
-		float nextPointY;
-
-		Vector2f nextPoint;
-
-		int sign = backwards ? -1 : 1;
-
-		nextPointX= currentPoint[0] +EulerStepSize*(-sign)*currentPoint[1];
-		nextPointY= currentPoint[1] +EulerStepSize*(sign)*currentPoint[0]/2;
-		nextPoint= makeVector2f(nextPointX, nextPointY);
-
-		viewer->addLine(currentPoint, nextPoint, RKcolor);
-		viewer->addPoint(currentPoint);
-
-		currentPoint=nextPoint;
-	}
-
-	//Render the Euler curve
-	viewer->refresh();
-
-}
-
-
 //Runge-Kutta
 void Task52::RungeKuttaStreamlines(){
 
-	Vector4f RKcolor = backwards ? makeVector4f(0,1,1,1) : makeVector4f(1,0,0,1);
-	Vector2f startPoint = makeVector2f(XStart,YStart);
+	VectorField2 field;
+
+    //Load the vector field
+    if (!field.load(VectorfieldFilename))
+    {
+        output << "Error loading field file " << VectorfieldFilename << "\n";
+        return;
+    }
+
+	// Different colors for forwards (green) and backwards (red)
+	Vector4f RKcolor = backwards ? makeVector4f(1,0,0,1) : makeVector4f(0,1,0,1);
+	
+	//Defining the start point
+	Vector2f startPoint = makeVector2f((field.boundMin()[0] + field.boundMax()[0])/2,(field.boundMin()[1] + field.boundMax()[1])/2);
+
 	Vector2f x = makeVector2f(startPoint[0], startPoint[1]);
 
-	int sign = backwards ? -1 : 1;
+	RKStepSize = backwards ? -RKStepSize : RKStepSize; // if "backwards" is checked, inverts sign of integration step
 	float a, b, length;
 	float accLength = 0;
-
 
 	for(int i = 0; i < RKSteps; i++){
 
 	//The 4 vectors of th RK method
-		Vector2f v1 = makeVector2f((-1)*x[1], x[0]/2);
+		Vector2f v1 = field.sample(x[0],x[1]);
+		v1.normalize();
 		
-		Vector2f v2p = makeVector2f((x[0]+sign*RKStepSize*v1[0]/2),(x[1]+sign*RKStepSize*v1[1]/2));
-		Vector2f v2 = makeVector2f((-1)*v2p[1], v2p[0]/2);
-		
-		Vector2f v3p = makeVector2f((x[0]+sign*RKStepSize*v2[0]/2),(x[1]+sign*RKStepSize*v2[1]/2));
-		Vector2f v3 = makeVector2f((-1)*v3p[1], v3p[0]/2);
-		
-		Vector2f v4p = makeVector2f((x[0]+sign*RKStepSize*v3[0]),(x[1]+sign*RKStepSize*v3[1]));
-		Vector2f v4 = makeVector2f((-1)*v4p[1], v4p[0]/2);
+		Vector2f v2p = makeVector2f((x[0]+RKStepSize*v1[0]/2),(x[1]+RKStepSize*v1[1]/2));
+		Vector2f v2 = field.sample(v2p[0],v2p[1]);
+		v2.normalize();
+
+		Vector2f v3p = makeVector2f((x[0]+RKStepSize*v2[0]/2),(x[1]+RKStepSize*v2[1]/2));
+		Vector2f v3 = field.sample(v3p[0],v3p[1]);
+		v3.normalize();
+
+		Vector2f v4p = makeVector2f((x[0]+RKStepSize*v3[0]),(x[1]+RKStepSize*v3[1]));
+		Vector2f v4 = field.sample(v4p[0],v4p[1]);
+		v4.normalize();
 
 	//Combine the 4 vectors to get the end position
-		Vector2f x1 = makeVector2f(x[0]+sign*RKStepSize*(v1[0]/6 + v2[0]/3 + v3[0]/3 + v4[0]/6), x[1]+sign*RKStepSize*(v1[1]/6 + v2[1]/3 + v3[1]/3 + v4[1]/6));
+		Vector2f x1 = makeVector2f(x[0]+RKStepSize*(v1[0]/6 + v2[0]/3 + v3[0]/3 + v4[0]/6), x[1]+RKStepSize*(v1[1]/6 + v2[1]/3 + v3[1]/3 + v4[1]/6));
 
 		viewer->addPoint(x);
         viewer->addLine(x, x1, RKcolor, 2);

@@ -36,8 +36,10 @@ public:
 public:
 
 	//start values
+	
 	float XStart;
 	float YStart;
+
 
 	//Euler values
 	float EulerStepSize;
