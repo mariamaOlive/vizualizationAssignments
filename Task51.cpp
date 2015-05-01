@@ -126,4 +126,45 @@ void Task51::EulerStreamlines(){
 //Runge-Kutta
 void Task51::RungeKuttaStreamlines(){
 
+	//Load the vector field
+    VectorField2 field;
+    if (!field.load(VectorfieldFilename))
+    {
+        output << "Error loading field file " << VectorfieldFilename << "\n";
+        return;
+    }
+
+	Vector4f RKcolor = makeVector4f(1,0,0,1);
+	Vector2f x = makeVector2f(XStart,YStart);
+	//output << "x value : " << x[0] << " , y value: " << x[1] << "\n";
+
+	for(int i = 1; i < 2; i++){
+
+	//The 4 vectors of th RK method
+		Vector2f v1 = makeVector2f(-x[1], x[0]/2);
+		Vector2f v2 = makeVector2f((x[0]+RKStepSize*v1[0]/2),(x[1]+RKStepSize*v1[1]/2));
+		Vector2f v3 = makeVector2f((x[0]+RKStepSize*v2[0]/2),(x[1]+RKStepSize*v2[1]/2));
+		Vector2f v4 = makeVector2f((x[0]+RKStepSize*v3[0]),(x[1]+RKStepSize*v3[1]));
+
+		output << "v1 : " << v1 << "\n";
+		output << "v2 : " << v2 << "\n";
+		output << "v3 : " << v3 << "\n";
+		output << "v4 : " << v4 << "\n";
+
+	//Combine the 4 vectors to get the end position
+		Vector2f x1 = makeVector2f(x[0]+RKStepSize*(v1[0]/6 + v2[0]/3 + v3[0]/3 + v4[0]/6), x[1]+RKStepSize*(v1[1]/6 + v2[1]/3 + v3[1]/3 + v4[1]/6));
+		Vector2f vec = field.sample(x1[0],x1[1]);
+        vec.normalize();
+
+			output << "x1 : " << x1 << "\n";
+				output << "vec : " << vec << "\n";
+
+	//Get the starting position
+		Vector2f start = field.sample(x[0],x[1]);
+		start.normalize();
+
+        viewer->addLine(start[0], start[1], vec[0], vec[1]);
+
+		x = x1;
+	}
 }
