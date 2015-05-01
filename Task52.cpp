@@ -228,7 +228,22 @@ void Task52::GridSeeding(){
 	float ymin = field.boundMin()[1];
 	float ymax = field.boundMax()[1];
 
-	int points = n / (GridPointsX + GridPoitnsY);
+	float stepHorizontal= (xmax-xmin)/(GridPointsX-1);
+	float stepVertical= (ymax-ymin)/(GridPoitnsY-1);
+
+	//Start drawing the stream lines in the grid
+
+	float x=xmin;
+	float y=ymin;
+	//Going horizontaly and then vertically
+	for(int i=0; i<GridPoitnsY;i++){
+		float x=xmin;
+		for(int j=0; j<GridPointsX; j++){			
+			RungeKuttaStreamlines(field,x, y);
+			x+=stepHorizontal;
+		}
+		y+=stepVertical;
+	}
 
 }
 
