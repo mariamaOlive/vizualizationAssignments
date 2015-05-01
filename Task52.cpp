@@ -48,7 +48,7 @@ QWidget* Task52::createViewer()
 Task52::Task52()
 {
     viewer = NULL;
-    VectorfieldFilename = "Cylinderclose2CT10.am";
+    VectorfieldFilename = "ANoise2CT4.am";
     ArrowScale = 0.1;
 
 	//start values
@@ -63,11 +63,11 @@ Task52::Task52()
 	RKSteps = 30;
 
 	//number of seeding points
-	n = 1;
+	n = 15;
 
 	//number of grid points in each direction
-	GridPointsX = 2;
-	GridPoitnsY = 1;
+	GridPointsX = 10;
+	GridPoitnsY = 10;
 }
 
 Task52::~Task52() {}
