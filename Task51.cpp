@@ -94,6 +94,31 @@ void Task51::DrawVectorField()
 
 //Euler
 void Task51::EulerStreamlines(){
+	
+	//Determining the start point
+	Vector2f startPoint= makeVector2f(XStart, YStart);
+
+	Vector2f currentPoint = startPoint;
+	//Calculating the line between steps
+	for(int i=0; i<EulerSteps; i++){
+		
+		float nextPointX;
+		float nextPointY;
+
+		Vector2f nextPoint;
+
+		nextPointX= currentPoint[0] +EulerStepSize*(-1)*currentPoint[1];
+		nextPointY= currentPoint[1] +EulerStepSize*currentPoint[0]/2;
+		nextPoint= makeVector2f(nextPointX, nextPointY);
+
+		viewer->addLine(currentPoint, nextPoint);
+		viewer->addPoint(currentPoint);
+
+		currentPoint=nextPoint;
+	}
+
+	//Render the Euler curve
+	viewer->refresh();
 
 }
 
