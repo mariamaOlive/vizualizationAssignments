@@ -69,8 +69,9 @@ void Task52::DrawVectorField()
 {
     viewer->clear();
 
+	VectorField2 field;
+
     //Load the vector field
-    VectorField2 field;
     if (!field.load(VectorfieldFilename))
     {
         output << "Error loading field file " << VectorfieldFilename << "\n";
@@ -78,9 +79,9 @@ void Task52::DrawVectorField()
     }
 
     //Draw vector directions (constant length)
-    for(float32 x=field.boundMin()[0]; x<=field.boundMax()[0]; x+=0.2)
+    for(float32 x=field.boundMin()[0]; x<=field.boundMax()[0]; x+=0.1)
     {
-        for(float32 y=field.boundMin()[1]; y<=field.boundMax()[1]; y+=0.2)
+        for(float32 y=field.boundMin()[1]; y<=field.boundMax()[1]; y+=0.1)
         {
             Vector2f vec = field.sample(x,y);
             vec.normalize();
@@ -126,6 +127,15 @@ void Task52::EulerStreamlines(){
 //Runge-Kutta
 void Task52::RungeKuttaStreamlines(){
 
+	VectorField2 field;
+
+    //Load the vector field
+    if (!field.load(VectorfieldFilename))
+    {
+        output << "Error loading field file " << VectorfieldFilename << "\n";
+        return;
+    }
+
 	Vector4f RKcolor = makeVector4f(1,0,0,1);
 	Vector2f startPoint = makeVector2f(XStart,YStart);
 	Vector2f x = makeVector2f(startPoint[0], startPoint[1]);
@@ -133,16 +143,16 @@ void Task52::RungeKuttaStreamlines(){
 	for(int i = 0; i < RKSteps; i++){
 
 	//The 4 vectors of th RK method
-		Vector2f v1 = makeVector2f((-1)*x[1], x[0]/2);
+		Vector2f v1 = field.sample(x[0],x[1]);
 		
 		Vector2f v2p = makeVector2f((x[0]+RKStepSize*v1[0]/2),(x[1]+RKStepSize*v1[1]/2));
-		Vector2f v2 = makeVector2f((-1)*v2p[1], v2p[0]/2);
+		Vector2f v2 = field.sample(v2p[0],v2p[1]);
 		
 		Vector2f v3p = makeVector2f((x[0]+RKStepSize*v2[0]/2),(x[1]+RKStepSize*v2[1]/2));
-		Vector2f v3 = makeVector2f((-1)*v3p[1], v3p[0]/2);
+		Vector2f v3 = field.sample(v3p[0],v3p[1]);
 		
 		Vector2f v4p = makeVector2f((x[0]+RKStepSize*v3[0]),(x[1]+RKStepSize*v3[1]));
-		Vector2f v4 = makeVector2f((-1)*v4p[1], v4p[0]/2);
+		Vector2f v4 = field.sample(v3p[0],v3p[1]);
 
 	//Combine the 4 vectors to get the end position
 		Vector2f x1 = makeVector2f(x[0]+RKStepSize*(v1[0]/6 + v2[0]/3 + v3[0]/3 + v4[0]/6), x[1]+RKStepSize*(v1[1]/6 + v2[1]/3 + v3[1]/3 + v4[1]/6));
