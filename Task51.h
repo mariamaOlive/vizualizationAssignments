@@ -40,9 +40,11 @@ public:
     string VectorfieldFilename;
 
 	//start values
+	
 	float XStart;
 	float YStart;
 	float MaxDistance;
+	
 
     ///Length of the arrows		TO BE REMOVED
     float ArrowScale;
