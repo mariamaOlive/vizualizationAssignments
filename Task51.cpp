@@ -164,7 +164,7 @@ void Task51::RungeKuttaStreamlines(){
 		output << "x1 : " << x1 << "\n";
 
 		viewer->addPoint(x);
-        viewer->addLine(x, x1);
+		viewer->addLine(x, x1, RKcolor);
 
 		x = x1;
 	}
