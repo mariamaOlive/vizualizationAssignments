@@ -43,6 +43,7 @@ public:
 	float XStart;
 	float YStart;
 	float MaxDistance;
+	bool backwards;
 
     ///Length of the arrows		TO BE REMOVED
     float ArrowScale;
