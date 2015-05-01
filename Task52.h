@@ -6,6 +6,9 @@
 #include "LinearAlgebra.h"
 #include "GLGeometryViewer.h"
 //---------------------------------------------------------------------------
+#include <limits>
+#include "Field2.hpp"
+
 
 /// This is an example experiment.
 ///
@@ -33,6 +36,9 @@ public:
 	//RungeKutta
 	void RungeKuttaStreamlines();
 
+	void RandomSeeding();
+	void RungeKuttaStreamlines(VectorField2 field, float startX, float startY);
+
 //Attributes
 public:
 
@@ -56,6 +62,9 @@ public:
 	//Runge-Kutta values
 	float RKStepSize;
 	int RKSteps;
+
+	//number of seeding points
+	int n;
 
 
 protected:
