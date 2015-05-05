@@ -73,6 +73,18 @@ Task52::Task52()
 
 Task52::~Task52() {}
 
+struct MagCell{
+	float mag;
+	float xpos;
+	float ypos;
+	//bool operator() (float m1, float m2) {return (m1<m2);}
+};
+
+bool compareMagCells(const MagCell &cell1, const MagCell &cell2){
+	if(cell1.mag != cell2.mag) return cell1.mag<cell2.mag;
+	return cell1.mag < cell2.mag;
+}
+
 //From ExpampleExperimentField (remove later)
 void Task52::DrawVectorField()
 {
@@ -183,7 +195,41 @@ void Task52::GridSeeding(){
 }
 
 void Task52::BonusTask(){
-	output <<"\n" << "in bonus" <<"\n";
+
+	VectorField2 field;
+
+    //Load the vector field
+    if (!field.load(VectorfieldFilename))
+    {
+        output << "Error loading field file " << VectorfieldFilename << "\n";
+        return;
+    }
+
+	//Create vector of MagCells from the cells
+	vector <MagCell> mCells;
+    for(float32 x=field.boundMin()[0]; x<=field.boundMax()[0]; x+=0.1)
+    {
+        for(float32 y=field.boundMin()[1]; y<=field.boundMax()[1]; y+=0.1)
+        {
+            Vector2f vec = field.sample(x,y);
+			float vmag = sqrt(pow(vec[0],2) + pow(vec[1],2));
+
+			MagCell m;
+			m.mag = vmag;
+			m.xpos = x;
+			m.ypos = y;
+			
+			mCells.push_back(m);
+        }
+    }
+
+	//Sort the vector of MagCells
+	sort(mCells.begin(), mCells.end(), compareMagCells);
+
+	for(int i = 0; i < mCells.size(); i++){
+		output << mCells[i].mag << "\n";
+	}
+
 }
 
 //Runge-Kutta
