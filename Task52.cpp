@@ -37,6 +37,7 @@ IMPLEMENT_GEOX_CLASS( Task52, 0)
 	ADD_NOARGS_METHOD(Task52::RungeKuttaStreamlines)
 	ADD_NOARGS_METHOD(Task52::RandomSeeding)
 	ADD_NOARGS_METHOD(Task52::GridSeeding)
+	ADD_NOARGS_METHOD(Task52::BonusTask)
 }
 
 QWidget* Task52::createViewer()
@@ -181,6 +182,10 @@ void Task52::GridSeeding(){
 	viewer->refresh();
 }
 
+void Task52::BonusTask(){
+	output <<"\n" << "in bonus" <<"\n";
+}
+
 //Runge-Kutta
 void Task52::RungeKuttaStreamlines(VectorField2 field, float startX, float startY){
 
@@ -203,26 +208,26 @@ void Task52::RungeKuttaStreamlines(VectorField2 field, float startX, float start
 	//Checks if initial point is out of boundaries
 	if ((x[0] < field.boundMin()[0])||(x[0] > field.boundMax()[0])||(x[1] < field.boundMin()[1])||(x[1] > field.boundMax()[1])) {
 		outOfBounds = true;
-		output << "Out of bounds! \n";
+		//output << "Out of bounds! \n";
 	}
 
 	for(int i = 0; ((i < RKSteps) && (arcLength < MaxLength) && (!outOfBounds) && (!tooSlow)); i++){
 
 	//The 4 vectors of th RK method
 		Vector2f v1 = field.sample(x[0],x[1]);
-		v1.normalize();
+		//v1.normalize();
 		
 		Vector2f v2p = makeVector2f((x[0]+RKStepSize2*v1[0]/2),(x[1]+RKStepSize2*v1[1]/2));
 		Vector2f v2 = field.sample(v2p[0],v2p[1]);
-		v2.normalize();
+		//v2.normalize();
 
 		Vector2f v3p = makeVector2f((x[0]+RKStepSize2*v2[0]/2),(x[1]+RKStepSize2*v2[1]/2));
 		Vector2f v3 = field.sample(v3p[0],v3p[1]);
-		v3.normalize();
+		//v3.normalize();
 
 		Vector2f v4p = makeVector2f((x[0]+RKStepSize2*v3[0]),(x[1]+RKStepSize2*v3[1]));
 		Vector2f v4 = field.sample(v4p[0],v4p[1]);
-		v4.normalize();
+		//v4.normalize();
 
 	//Combine the 4 vectors to get the end position
 		Vector2f x1 = makeVector2f(x[0]+RKStepSize2*(v1[0]/6 + v2[0]/3 + v3[0]/3 + v4[0]/6), x[1]+RKStepSize2*(v1[1]/6 + v2[1]/3 + v3[1]/3 + v4[1]/6));
@@ -238,16 +243,16 @@ void Task52::RungeKuttaStreamlines(VectorField2 field, float startX, float start
 		a = sampleVector[0]-x1[0];
 		b = sampleVector[1]-x1[1];
 		speed = sqrt(pow(a,2)+pow(b,2));
-		output << "speed: " << speed << "\n";
+		//output << "speed: " << speed << "\n";
 		
 		//Checks boundary limits
 		if ((x1[0] < field.boundMin()[0])||(x1[0] > field.boundMax()[0])||(x1[1] < field.boundMin()[1])||(x1[1] > field.boundMax()[1])) {
 			outOfBounds = true;
-			output << "Out of bounds! \n";
+			//output << "Out of bounds! \n";
 		}
 		else if (speed < MinSpeed) {
 			tooSlow = true;
-			output << "Vector speed too slow... \n";
+			//output << "Vector speed too slow... \n";
 		}
 		else {
 			viewer->addPoint(x);

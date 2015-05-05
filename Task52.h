@@ -38,6 +38,7 @@ public:
 
 	void RandomSeeding();
 	void GridSeeding();
+	void BonusTask();
 	void RungeKuttaStreamlines(VectorField2 field, float startX, float startY);
 
 //Attributes
