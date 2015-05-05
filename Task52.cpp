@@ -26,6 +26,7 @@ IMPLEMENT_GEOX_CLASS( Task52, 0)
 	ADD_INT32_PROP(n,0) 
 	ADD_INT32_PROP(GridPointsX,0) 
 	ADD_INT32_PROP(GridPoitnsY,0) 
+	ADD_FLOAT32_PROP(BonusGrid, 0)
 
 	ADD_SEPARATOR("RungeKutta")
 	ADD_FLOAT32_PROP(RKStepSize,0)
@@ -71,6 +72,10 @@ Task52::Task52()
 	//number of grid points in each direction
 	GridPointsX = 10;
 	GridPoitnsY = 10;
+
+	//Size of bonus grid (first calculation)
+	BonusGrid = 0.1;
+
 }
 
 Task52::~Task52() {}
@@ -217,9 +222,9 @@ void Task52::BonusTask(){
 
 	//Create vector of MagCells from the cells
 	vector <MagCell> mCells;
-    for(float32 x=field.boundMin()[0]; x<=field.boundMax()[0]; x+=0.1)
+    for(float32 x=field.boundMin()[0]; x<=field.boundMax()[0]; x+=BonusGrid)
     {
-        for(float32 y=field.boundMin()[1]; y<=field.boundMax()[1]; y+=0.1)
+        for(float32 y=field.boundMin()[1]; y<=field.boundMax()[1]; y+=BonusGrid)
         {
             Vector2f vec = field.sample(x,y);
 			float vmag = sqrt(pow(vec[0],2) + pow(vec[1],2));
@@ -235,10 +240,15 @@ void Task52::BonusTask(){
 
 	//Sort the vector of MagCells
 	sort(mCells.begin(), mCells.end(), compareMagCells);
-
-	for(int i = 0; i < mCells.size(); i++){
-		output << mCells[i].mag << "\n";
+	
+	int count = 0;
+	for(int i = (mCells.size()-1); i > 0 && count < n; i--){
+		output << mCells[i].mag << ", i=" << i << "\n";
+		RungeKuttaStreamlines(field,mCells[i].xpos, mCells[i].ypos);
+		count++;
 	}
+
+	viewer->refresh();
 
 }
 

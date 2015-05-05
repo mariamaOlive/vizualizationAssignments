@@ -74,6 +74,9 @@ public:
 	int GridPointsX;
 	int GridPoitnsY;
 
+	//Size of bonus grid (first calculation)
+	float BonusGrid;
+
 
 protected:
     GLGeometryViewer* viewer;
