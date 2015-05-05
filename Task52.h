@@ -54,6 +54,7 @@ public:
 	float MinSpeed;
 	bool backwards;
 	bool printComments;
+	bool normal;
 
     ///Length of the arrows		TO BE REMOVED
     float ArrowScale;

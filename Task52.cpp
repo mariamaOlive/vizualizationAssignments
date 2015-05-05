@@ -30,7 +30,7 @@ IMPLEMENT_GEOX_CLASS( Task52, 0)
 	ADD_SEPARATOR("RungeKutta")
 	ADD_FLOAT32_PROP(RKStepSize,0)
 	ADD_INT32_PROP(RKSteps,0)  
-
+	ADD_BOOLEAN_PROP(normal,0)
 	ADD_BOOLEAN_PROP(backwards,0)
 
     ADD_NOARGS_METHOD(Task52::DrawVectorField)
@@ -59,6 +59,7 @@ Task52::Task52()
 	MinSpeed = 0.1;
 	backwards = false;
 	printComments = true;
+	normal =  false;
 
 	//Runge-Kutta values
 	RKStepSize = 0.3;
@@ -73,6 +74,18 @@ Task52::Task52()
 }
 
 Task52::~Task52() {}
+
+struct MagCell{
+	float mag;
+	float xpos;
+	float ypos;
+	//bool operator() (float m1, float m2) {return (m1<m2);}
+};
+
+bool compareMagCells(const MagCell &cell1, const MagCell &cell2){
+	if(cell1.mag != cell2.mag) return cell1.mag<cell2.mag;
+	return cell1.mag < cell2.mag;
+}
 
 //From ExpampleExperimentField (remove later)
 void Task52::DrawVectorField()
@@ -192,7 +205,41 @@ void Task52::GridSeeding(){
 }
 
 void Task52::BonusTask(){
-	output <<"\n" << "in bonus" <<"\n";
+
+	VectorField2 field;
+
+    //Load the vector field
+    if (!field.load(VectorfieldFilename))
+    {
+        output << "Error loading field file " << VectorfieldFilename << "\n";
+        return;
+    }
+
+	//Create vector of MagCells from the cells
+	vector <MagCell> mCells;
+    for(float32 x=field.boundMin()[0]; x<=field.boundMax()[0]; x+=0.1)
+    {
+        for(float32 y=field.boundMin()[1]; y<=field.boundMax()[1]; y+=0.1)
+        {
+            Vector2f vec = field.sample(x,y);
+			float vmag = sqrt(pow(vec[0],2) + pow(vec[1],2));
+
+			MagCell m;
+			m.mag = vmag;
+			m.xpos = x;
+			m.ypos = y;
+			
+			mCells.push_back(m);
+        }
+    }
+
+	//Sort the vector of MagCells
+	sort(mCells.begin(), mCells.end(), compareMagCells);
+
+	for(int i = 0; i < mCells.size(); i++){
+		output << mCells[i].mag << "\n";
+	}
+
 }
 
 //Runge-Kutta
@@ -226,18 +273,27 @@ void Task52::RungeKuttaStreamlines(VectorField2 field, float startX, float start
 	//The 4 vectors of th RK method
 		Vector2f v1 = field.sample(x[0],x[1]);
 		//v1.normalize();
+		if(normal){
+		v1.normalize();
+		}
 
 		Vector2f v2p = makeVector2f((x[0]+RKStepSize2*v1[0]/2),(x[1]+RKStepSize2*v1[1]/2));
 		Vector2f v2 = field.sample(v2p[0],v2p[1]);
-		//v2.normalize();
+		if(normal){
+		v2.normalize();
+		}
 
 		Vector2f v3p = makeVector2f((x[0]+RKStepSize2*v2[0]/2),(x[1]+RKStepSize2*v2[1]/2));
 		Vector2f v3 = field.sample(v3p[0],v3p[1]);
-		//v3.normalize();
+		if(normal){
+		v3.normalize();
+		}
 
 		Vector2f v4p = makeVector2f((x[0]+RKStepSize2*v3[0]),(x[1]+RKStepSize2*v3[1]));
 		Vector2f v4 = field.sample(v4p[0],v4p[1]);
-		//v4.normalize();
+		if(normal){
+		v4.normalize();
+		}
 
 	//Combine the 4 vectors to get the end position
 		Vector2f x1 = makeVector2f(x[0]+RKStepSize2*(v1[0]/6 + v2[0]/3 + v3[0]/3 + v4[0]/6), x[1]+RKStepSize2*(v1[1]/6 + v2[1]/3 + v3[1]/3 + v4[1]/6));
