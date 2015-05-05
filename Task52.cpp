@@ -53,11 +53,12 @@ Task52::Task52()
     ArrowScale = 0.1;
 
 	//start values
-	XStart = 1;
+	XStart = 0;
 	YStart = 0;
 	MaxLength = 5.3;
 	MinSpeed = 0.1;
 	backwards = false;
+	printComments = true;
 
 	//Runge-Kutta values
 	RKStepSize = 0.3;
@@ -114,7 +115,8 @@ void Task52::RungeKuttaStreamlines(){
         return;
     }
 
-	Vector2f startPoint = makeVector2f((field.boundMin()[0] + field.boundMax()[0])/2,(field.boundMin()[1] + field.boundMax()[1])/2); // starting in the middle
+	//Vector2f startPoint = makeVector2f((field.boundMin()[0] + field.boundMax()[0])/2,(field.boundMin()[1] + field.boundMax()[1])/2); // starting in the middle
+	Vector2f startPoint = makeVector2f(XStart,YStart);
 	RungeKuttaStreamlines(field, startPoint[0], startPoint[1]);
 	viewer->refresh();
 }
@@ -122,6 +124,7 @@ void Task52::RungeKuttaStreamlines(){
 //random stream lines
 void Task52::RandomSeeding(){
 	VectorField2 field;
+	printComments = false;
 
     //Load the vector field
     if (!field.load(VectorfieldFilename))
@@ -145,11 +148,14 @@ void Task52::RandomSeeding(){
 
 	}
 
+	printComments = true;
+
 	viewer->refresh();
 }
 
 void Task52::GridSeeding(){
 	VectorField2 field;
+	printComments = false;
 
     //Load the vector field
     if (!field.load(VectorfieldFilename))
@@ -179,6 +185,9 @@ void Task52::GridSeeding(){
 		}
 		y+=stepVertical;
 	}
+
+	printComments = true;
+
 	viewer->refresh();
 }
 
@@ -208,7 +217,8 @@ void Task52::RungeKuttaStreamlines(VectorField2 field, float startX, float start
 	//Checks if initial point is out of boundaries
 	if ((x[0] < field.boundMin()[0])||(x[0] > field.boundMax()[0])||(x[1] < field.boundMin()[1])||(x[1] > field.boundMax()[1])) {
 		outOfBounds = true;
-		//output << "Out of bounds! \n";
+		if(printComments)
+		  output << "Out of bounds! \n";
 	}
 
 	for(int i = 0; ((i < RKSteps) && (arcLength < MaxLength) && (!outOfBounds) && (!tooSlow)); i++){
@@ -216,7 +226,7 @@ void Task52::RungeKuttaStreamlines(VectorField2 field, float startX, float start
 	//The 4 vectors of th RK method
 		Vector2f v1 = field.sample(x[0],x[1]);
 		//v1.normalize();
-		
+
 		Vector2f v2p = makeVector2f((x[0]+RKStepSize2*v1[0]/2),(x[1]+RKStepSize2*v1[1]/2));
 		Vector2f v2 = field.sample(v2p[0],v2p[1]);
 		//v2.normalize();
@@ -248,11 +258,13 @@ void Task52::RungeKuttaStreamlines(VectorField2 field, float startX, float start
 		//Checks boundary limits
 		if ((x1[0] < field.boundMin()[0])||(x1[0] > field.boundMax()[0])||(x1[1] < field.boundMin()[1])||(x1[1] > field.boundMax()[1])) {
 			outOfBounds = true;
-			//output << "Out of bounds! \n";
+			if(printComments)
+			  output << "Out of bounds! \n";
 		}
 		else if (speed < MinSpeed) {
 			tooSlow = true;
-			//output << "Vector speed too slow... \n";
+			if(printComments)
+			  output << "Vector speed too slow... \n";
 		}
 		else {
 			viewer->addPoint(x);

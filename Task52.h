@@ -53,6 +53,7 @@ public:
 	float MaxLength;
 	float MinSpeed;
 	bool backwards;
+	bool printComments;
 
     ///Length of the arrows		TO BE REMOVED
     float ArrowScale;
