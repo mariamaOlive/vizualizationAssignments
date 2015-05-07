@@ -13,6 +13,14 @@
 /// The code is meant to demonstrate how
 ///  to use the GeoX framework
 ///
+
+//Class resposible for representing the values of the stream line points
+class pStream{
+	float x;
+	float y;
+};
+
+
 class Task61 : public Experiment
 {
     GEOX_CLASS(Task61)
@@ -28,6 +36,7 @@ public:
     void DrawVectorField();
     void DrawTexture();
     virtual QWidget* createViewer();
+	void RungeKuttaStreamlines(VectorField2 field, float startX, float startY);
 
 	void LIC();
 
