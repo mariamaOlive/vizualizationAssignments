@@ -48,14 +48,14 @@ Task61::Task61()
     VectorfieldFilename = "Cylinderclose2CT10.am";
     ArrowScale = 0.1;
     ImageFilename = "";
-    bColoredTexture = true;
+    bColoredTexture = false;
 
 	SampleX = 64;
 	SampleY = 64;
 	KernelSize = 1;
 	Seed = 1;
 
-	RandomTexture = false;
+	RandomTexture = true;
 	FastLIC = false;
 	AutoContrast = false;
 }
@@ -64,7 +64,7 @@ Task61::~Task61() {}
 
 void Task61::DrawVectorField()
 {
-    viewer->clear();
+    //viewer->clear();
 
     //Load the vector field
     VectorField2 field;
@@ -111,19 +111,37 @@ void Task61::DrawTexture()
 {
     viewer->clear();
 
-    //Load the texture using Qt
-    QImage image(ImageFilename.c_str());
+	QImage image(ImageFilename.c_str());
 
-    //Get its (original) dimensions. Used as bounds later.
-    const float fWidth = (float)image.width();
-    const float fHeight = (float)image.height();
+    //Float dimensions for RandomTexture
+	float fWidth = 8;
+	float fHeight = 8;
 
-    //Resize to power-of-two and mirror.
-    image = image.mirrored().scaled(NextPOT(image.width()), NextPOT(image.height()));
+	//Integer dimensions for RandomTexture
+	int iWidth = 8;
+	int iHeight = 8;
 
-    //Get its new integer dimensions.
-    const int iWidth = image.width();
-    const int iHeight = image.height();
+	if(!RandomTexture) {
+		//Load the texture using Qt
+		
+
+		//Get its (original) dimensions. Used as bounds later.
+		fWidth = (float)image.width();
+		fHeight = (float)image.height();
+
+		//Resize to power-of-two and mirror.
+		image = image.mirrored().scaled(NextPOT(image.width()), NextPOT(image.height()));
+
+		//Get its new integer dimensions.
+		iWidth = image.width();
+		iHeight = image.height();
+	}
+	else {
+		//Initialize random seed
+		srand (Seed);
+
+	}
+
 
     if (bColoredTexture)
     {
@@ -154,6 +172,9 @@ void Task61::DrawTexture()
     {
         //Create one gray color channel represented as a scalar field
         ScalarField2 Gray;
+		float randGray;
+		int randBW;
+
         Gray.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
 
         //Set the values at the vertices
@@ -161,7 +182,13 @@ void Task61::DrawTexture()
         {
             for(size_t i=0; i<Gray.dims()[0]; i++)
             {
-                Gray.setNodeScalar(i, j, (float)(qGray(image.pixel(i, j))) / 255.0 );
+                //Gray.setNodeScalar(i, j, (float)(qGray(image.pixel(i, j))) / 255.0 );
+				
+				// Generate random intensities
+				//randGray = (rand() % 256) / 255.0;
+				randBW = rand() % 2;
+				output << randBW << "\n";
+				Gray.setNodeScalar(i, j, (float)(randBW);
             }
         }
 
