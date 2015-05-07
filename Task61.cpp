@@ -37,7 +37,10 @@ IMPLEMENT_GEOX_CLASS( Task61, 0)
 	ADD_BOOLEAN_PROP(RandomTexture, 0)
 	ADD_BOOLEAN_PROP(FastLIC, 0)
 	ADD_BOOLEAN_PROP(AutoContrast, 0)
+	ADD_BOOLEAN_PROP(BWTexture, 0)
+
 	ADD_NOARGS_METHOD(Task61::LIC)
+	ADD_NOARGS_METHOD(Task61::LoadFiles)
 }
 
 QWidget* Task61::createViewer()
@@ -62,20 +65,15 @@ Task61::Task61()
 	RandomTexture = true;
 	FastLIC = false;
 	AutoContrast = false;
-	
-	//Load the vector field
-    VectorField2 field;
-    if (!field.load(VectorfieldFilename))
-    {
-        output << "Error loading field file " << VectorfieldFilename << "\n";
-        return;
-    }
+	BWTexture = false;
 
-	PositionStream(field, 0, 0, .05,10);
+	normal = true;
+	printComments = false;
+	MinSpeed = 0.1;
+
 }
 
 Task61::~Task61() {}
-
 
 void Task61::DrawVectorField()
 {
@@ -162,11 +160,8 @@ void Task61::DrawTexture()
     {
         //Create three color channels for the texture
         //Each of them is represented using a scalar field
-        ScalarField2 Red;
         Red.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
-        ScalarField2 Green;
         Green.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
-        ScalarField2 Blue;
         Blue.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
 
         //Fill the scalar fields
@@ -186,7 +181,6 @@ void Task61::DrawTexture()
     else
     {
         //Create one gray color channel represented as a scalar field
-        ScalarField2 Gray;
 		float randGray;
 		int randBW;
 
@@ -202,7 +196,8 @@ void Task61::DrawTexture()
 				// Generate random intensities
 				//randGray = (rand() % 256) / 255.0;
 				randBW = rand() % 2;
-				output << randBW << "\n";
+
+				//output << randBW << "\n";
 				Gray.setNodeScalar(i, j, (float)(randBW));
             }
         }
@@ -214,12 +209,116 @@ void Task61::DrawTexture()
     viewer->refresh();
 }
 
+//Load file and create data
+void Task61::LoadFiles(){
 
+	//viewer->clear();
 
+	//Load Vectorfield
+
+	//Create texture
+	QImage image(ImageFilename.c_str());
+
+    //Float dimensions for RandomTexture
+	float fWidth = 8;
+	float fHeight = 8;
+
+	//Integer dimensions for RandomTexture
+	int iWidth = 8;
+	int iHeight = 8;
+
+	if(!RandomTexture) {
+		//Load the texture using Qt
+		
+		//Get its (original) dimensions. Used as bounds later.
+		fWidth = (float)image.width();
+		fHeight = (float)image.height();
+
+		//Resize to power-of-two and mirror.
+		image = image.mirrored().scaled(NextPOT(image.width()), NextPOT(image.height()));
+
+		//Get its new integer dimensions.
+		iWidth = image.width();
+		iHeight = image.height();
+	}
+
+	else {
+		//Initialize random seed
+		srand (Seed);
+	}
+
+    //Create three color channels for the texture
+    //Each of them is represented using a scalar field
+    if (bColoredTexture)
+    {
+        Red.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
+        Green.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
+        Blue.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
+
+        //Fill the scalar fields
+        for(size_t j=0; j<Red.dims()[1]; j++)
+        {
+            for(size_t i=0; i<Red.dims()[0]; i++)
+            {
+                Red.setNodeScalar(i, j, (float)(qRed(image.pixel(i, j))) / 255.0 );
+                Green.setNodeScalar(i, j, (float)(qGreen(image.pixel(i, j))) / 255.0 );
+                Blue.setNodeScalar(i, j, (float)(qBlue(image.pixel(i, j))) / 255.0 );
+            }
+        }
+    }
+
+	//Create one gray color channel represented as a scalar field
+    else{   
+		float randGray;
+		int randBW;
+
+        Gray.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
+
+        //Set the values at the vertices
+        for(size_t j=0; j<Gray.dims()[1]; j++)
+        {
+            for(size_t i=0; i<Gray.dims()[0]; i++)
+            {			
+                //Gray.setNodeScalar(i, j, (float)(qGray(image.pixel(i, j))) / 255.0 );
+				
+				// Generate random intensities
+				if(!BWTexture){
+					randGray = (rand() % 256) / 255.0;
+					Gray.setNodeScalar(i, j, randGray);
+				}
+				else{
+					randBW = rand() % 2;
+					//output << randBW << "\n";
+					Gray.setNodeScalar(i, j, (float)(randBW));
+				}
+            }
+        }
+		//viewer->setTextureGray(Gray.getData());
+    }
+	//viewer->refresh();
+	output << "Loading done" << "\n";
+}
+
+//the Box kernel: result is the arithmetic mean of all collected pixel values.
+float calcMean(vector<pStream> pVec, ScalarField2 data){
+	float mean = 0;
+
+	for( int i = 0; i < pVec.size(); i++){
+		mean += data.nodeScalar(pVec[i].x, pVec[i].y);	//get value at pos
+	}
+
+	if(pVec.size() != 0){
+			mean = mean/pVec.size();
+	}
+
+	return mean;
+}
 
 
 void Task61::LIC(){
 	output << "in LIC" << "\n";
+	vector <pStream> test;
+	calcMean(test, Gray);
 
 	/* Algorithm
 	
@@ -242,6 +341,7 @@ void Task61::LIC(){
 	*/
 
 }
+
 
 //Calculating position of the stream line
 vector<pStream> Task61::PositionStream(VectorField2 field, float startX, float startY, float pixelSize, float L){
@@ -269,7 +369,7 @@ vector<pStream> Task61::PositionStream(VectorField2 field, float startX, float s
 
 
 //Runge-Kutta
- vector<pStream> Task61::RungeKuttaStreamlines(VectorField2 field, float startX, float startY, float RKStepSize, float L, bool backwards){
+ vector<pStream> Task61::RungeKuttaStreamlines(VectorField2 field, float startX, float startY,float stepSize, float maxLength, bool backwards){
 
 	 //The vector to be returned with the positions
 	 vector<pStream> positions;
@@ -285,7 +385,7 @@ vector<pStream> Task61::PositionStream(VectorField2 field, float startX, float s
 	bool outOfBounds = false;
 	bool tooSlow = false;
 	bool zeroSpeed = false;
-	float MaxLength=L;
+	float MaxLength=maxLength;
 	bool fix=false;
 
 	//Checks if initial point is out of boundaries

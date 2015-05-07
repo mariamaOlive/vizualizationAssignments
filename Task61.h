@@ -16,6 +16,7 @@
 ///  to use the GeoX framework
 ///
 
+
 //Class resposible for representing the values of the stream line points
 class pStream{
 	public:
@@ -39,16 +40,24 @@ public:
     void DrawVectorField();
     void DrawTexture();
     virtual QWidget* createViewer();
+
+	void LoadFiles();
+	void LIC();
 	vector<pStream> PositionStream(VectorField2 field, float startX, float startY, float pixelSize, float L);
 	vector<pStream> RungeKuttaStreamlines(VectorField2 field, float startX, float startY,float stepSize, float length, bool backwards);
-
-	void LIC();
 
 //Attributes
 public:
 
     ///File name of the vector field
     string VectorfieldFilename;
+
+	//Data
+	ScalarField2 Gray;
+	ScalarField2 Red;
+	ScalarField2 Green;
+	ScalarField2 Blue;
+	VectorField2 field;
 
 	//Values for LIC
 	int SampleX;
@@ -58,6 +67,16 @@ public:
 	bool RandomTexture;
 	bool FastLIC;
 	bool AutoContrast;
+	bool BWTexture;
+
+	//Variabels RK
+	float MaxLength;
+	float MinSpeed;
+	bool backwards;
+	bool printComments;
+	bool normal;
+	float RKStepSize;
+	int RKSteps;
 
     ///Length of the arrows
     float ArrowScale;
