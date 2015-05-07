@@ -18,6 +18,7 @@
 
 //Class resposible for representing the values of the stream line points
 class pStream{
+	public:
 	float x;
 	float y;
 };
@@ -38,7 +39,8 @@ public:
     void DrawVectorField();
     void DrawTexture();
     virtual QWidget* createViewer();
-	void RungeKuttaStreamlines(VectorField2 field, float startX, float startY);
+	vector<pStream> PositionStream(VectorField2 field, float startX, float startY, float pixelSize, float L);
+	vector<pStream> RungeKuttaStreamlines(VectorField2 field, float startX, float startY,float stepSize, float length, bool backwards);
 
 	void LIC();
 

@@ -11,6 +11,10 @@
 #include <limits>
 #include "Field2.hpp"
 
+
+#include <iostream>
+using namespace std;
+
 IMPLEMENT_GEOX_CLASS( Task61, 0)
 {
     BEGIN_CLASS_INIT( Task61 );
@@ -45,7 +49,7 @@ QWidget* Task61::createViewer()
 Task61::Task61()
 {
     viewer = NULL;
-    VectorfieldFilename = "Cylinderclose2CT10.am";
+    VectorfieldFilename = "ANoise2CT4.am";
     ArrowScale = 0.1;
     ImageFilename = "";
     bColoredTexture = false;
@@ -58,6 +62,16 @@ Task61::Task61()
 	RandomTexture = true;
 	FastLIC = false;
 	AutoContrast = false;
+	
+	//Load the vector field
+    VectorField2 field;
+    if (!field.load(VectorfieldFilename))
+    {
+        output << "Error loading field file " << VectorfieldFilename << "\n";
+        return;
+    }
+
+	PositionStream(field, 0, 0, .05,10);
 }
 
 Task61::~Task61() {}
@@ -189,7 +203,7 @@ void Task61::DrawTexture()
 				//randGray = (rand() % 256) / 255.0;
 				randBW = rand() % 2;
 				output << randBW << "\n";
-				Gray.setNodeScalar(i, j, (float)(randBW);
+				Gray.setNodeScalar(i, j, (float)(randBW));
             }
         }
 
@@ -229,17 +243,40 @@ void Task61::LIC(){
 
 }
 
-//Runge-Kutta
- Task61::RungeKuttaStreamlines(VectorField2 field, float startX, float startY){
-
-	// Different colors for forwards (green) and backwards (red)
-	Vector4f RKcolor = backwards ? makeVector4f(1,0,0,1) : makeVector4f(0,1,0,1);
+//Calculating position of the stream line
+vector<pStream> Task61::PositionStream(VectorField2 field, float startX, float startY, float pixelSize, float L){
 	
+	//Final vector to be returned
+	vector<pStream> finalVector;
+
+	//Vectors that will contain the positions of the stream line (-L to L)
+	vector<pStream> forward=RungeKuttaStreamlines(field, startX, startY, pixelSize, L, false);
+	vector<pStream> backward=RungeKuttaStreamlines(field, startX, startY, pixelSize, L, true);
+	
+	//Reserving memory for the two sets of position
+	finalVector.reserve(forward.size()+backward.size());
+	finalVector.insert(finalVector.end(), forward.begin(), forward.end());
+	finalVector.insert(finalVector.end(), backward.begin(), backward.end());
+
+	//Adding a final point (the point byitself)
+	pStream p;
+	p.x=startX;
+	p.y=startY;
+	finalVector.push_back(p);
+
+	return finalVector;
+}
+
+
+//Runge-Kutta
+ vector<pStream> Task61::RungeKuttaStreamlines(VectorField2 field, float startX, float startY, float RKStepSize, float L, bool backwards){
+
+	 //The vector to be returned with the positions
+	 vector<pStream> positions;
+
 	//Defining the start point
 	Vector2f startPoint = makeVector2f(startX,startY);
-	//Vector2f startPoint = makeVector2f((field.boundMin()[0] + field.boundMax()[0])/2,(field.boundMin()[1] + field.boundMax()[1])/2); // starting in the middle
-	//Vector2f startPoint = makeVector2f(field.boundMin()[0], field.boundMin()[1]);
-
+	
 	Vector2f x = makeVector2f(startPoint[0], startPoint[1]);
 
 	float RKStepSize2 = backwards ? -RKStepSize : RKStepSize; // if "backwards" is checked, inverts sign of integration step
@@ -247,40 +284,51 @@ void Task61::LIC(){
 	float arcLength = 0;
 	bool outOfBounds = false;
 	bool tooSlow = false;
+	bool zeroSpeed = false;
+	float MaxLength=L;
+	bool fix=false;
 
 	//Checks if initial point is out of boundaries
 	if ((x[0] < field.boundMin()[0])||(x[0] > field.boundMax()[0])||(x[1] < field.boundMin()[1])||(x[1] > field.boundMax()[1])) {
 		outOfBounds = true;
-		if(printComments)
-		  output << "Out of bounds! \n";
+	//	if(printComments)
+	//	  output << "Out of bounds! \n";
 	}
 
-	for(int i = 0; ((i < RKSteps) && (arcLength < MaxLength) && (!outOfBounds) && (!tooSlow)); i++){
+	//Verifing if starts at zeroSpeed
+	Vector2f sampleVector = field.sample(x[0], x[1]);
+	speed = sqrt(pow(sampleVector[0],2)+pow(sampleVector[1],2));
+
+	if(speed==0){
+		zeroSpeed=true;
+	}
+
+	//bugFix
+	float past=0;
+	for(int i = 0; ((arcLength < MaxLength) && (!outOfBounds) && (!tooSlow) && (!zeroSpeed) && (!fix)); i++){
 
 	//The 4 vectors of th RK method
 		Vector2f v1 = field.sample(x[0],x[1]);
-		//v1.normalize();
-		if(normal){
+		float test=v1.getSqrNorm();
 		v1.normalize();
-		}
+		
 
 		Vector2f v2p = makeVector2f((x[0]+RKStepSize2*v1[0]/2),(x[1]+RKStepSize2*v1[1]/2));
 		Vector2f v2 = field.sample(v2p[0],v2p[1]);
-		if(normal){
+		test=v2.getSqrNorm();
 		v2.normalize();
-		}
+		
 
 		Vector2f v3p = makeVector2f((x[0]+RKStepSize2*v2[0]/2),(x[1]+RKStepSize2*v2[1]/2));
 		Vector2f v3 = field.sample(v3p[0],v3p[1]);
-		if(normal){
+		test=v3.getSqrNorm();
 		v3.normalize();
-		}
+
 
 		Vector2f v4p = makeVector2f((x[0]+RKStepSize2*v3[0]),(x[1]+RKStepSize2*v3[1]));
 		Vector2f v4 = field.sample(v4p[0],v4p[1]);
-		if(normal){
+		test=v4.getSqrNorm();
 		v4.normalize();
-		}
 
 	//Combine the 4 vectors to get the end position
 		Vector2f x1 = makeVector2f(x[0]+RKStepSize2*(v1[0]/6 + v2[0]/3 + v3[0]/3 + v4[0]/6), x[1]+RKStepSize2*(v1[1]/6 + v2[1]/3 + v3[1]/3 + v4[1]/6));
@@ -290,6 +338,18 @@ void Task61::LIC(){
 		b = x1[1]-x[1];
 		length = sqrt(pow(a,2)+pow(b,2));
 		arcLength += length;
+	
+		//Trick to fix crazy bug
+		if(past>length && i!=0){
+			if((past-length)>.001){
+				fix=true;
+			}
+		}else{
+			if((past-length)<-.001 && i!=0){
+				fix=true;
+			}
+		}
+		past=length;
 
 	//Calculates speed (actual vector size) by sampling
 		Vector2f sampleVector = field.sample(x1[0], x1[1]);
@@ -301,21 +361,29 @@ void Task61::LIC(){
 		//Checks boundary limits
 		if ((x1[0] < field.boundMin()[0])||(x1[0] > field.boundMax()[0])||(x1[1] < field.boundMin()[1])||(x1[1] > field.boundMax()[1])) {
 			outOfBounds = true;
-			if(printComments)
+			//if(printComments)
 			  output << "Out of bounds! \n";
+		}else if(speed==0){
+			zeroSpeed=true;
+			output<<"zero speed"<< "\n";
 		}
-		else if (speed < MinSpeed) {
-			tooSlow = true;
-			if(printComments)
-			  output << "Vector speed too slow... \n";
-		}
+		//else if (speed < MinSpeed) {
+		//	tooSlow = true;
+		////	//if(printComments)
+		////	  //output << "Vector speed too slow... \n";
+		//}
 		else {
-			viewer->addPoint(x);
-			viewer->addLine(x, x1, RKcolor, 2);	
+			//Adding the point in the vector of positions
+			pStream point;
+			point.x=x1[0];
+			point.y=x1[1];
+			
+			positions.push_back(point);
 			x = x1;
 		}
 	}
 	
+	return positions;
 }
 
 
