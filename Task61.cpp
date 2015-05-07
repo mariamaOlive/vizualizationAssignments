@@ -205,6 +205,27 @@ void Task61::DrawTexture()
 
 void Task61::LIC(){
 	output << "in LIC" << "\n";
+
+	/* Algorithm
+	
+	Loop through all points in vector field (pixels)
+	{
+		Integrate streamline from each pixel
+			- Towards and backwards (according to defined kernel length)
+			- Fixed step size: min(height, width) of pixel (?)
+			- Store each step point in a vector stepPtsVector
+			Loop through each point in stepPtsVector
+			{
+				Compute integral (LIC) over the stepPtsVector
+			}
+
+		Set pixel intensity with result from LIC
+	}
+	
+	
+	*/
+		
+
 }
 
 
