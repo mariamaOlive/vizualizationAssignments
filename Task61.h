@@ -7,6 +7,8 @@
 #include "GLGeometryViewer.h"
 //---------------------------------------------------------------------------
 
+#include <limits>
+#include "Field2.hpp"
 
 /// This is an example experiment.
 ///
