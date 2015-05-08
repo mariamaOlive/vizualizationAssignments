@@ -52,7 +52,9 @@ QWidget* Task61::createViewer()
 Task61::Task61()
 {
     viewer = NULL;
+
     VectorfieldFilename = "boussinesq2CT522.am";
+
     ArrowScale = 0.1;
     ImageFilename = "";
     bColoredTexture = false;
@@ -80,12 +82,11 @@ void Task61::DrawVectorField()
     //viewer->clear();
 
     //Load the vector field
-    VectorField2 field;
-    if (!field.load(VectorfieldFilename))
-    {
-        output << "Error loading field file " << VectorfieldFilename << "\n";
-        return;
-    }
+    //if (!field.load(VectorfieldFilename))
+    //{
+    //    output << "Error loading field file " << VectorfieldFilename << "\n";
+    //    return;
+    //}
 
     //Draw vector directions (constant length)
     for(float32 x=field.boundMin()[0]; x<=field.boundMax()[0]; x+=0.2)
@@ -124,13 +125,13 @@ void Task61::DrawTexture()
 {
     viewer->clear();
 
-	//Load Vectorfield
-    VectorField2 field;
-    if (!field.load(VectorfieldFilename))
-    {
-        output << "Error loading field file " << VectorfieldFilename << "\n";
-        return;
-    }
+	////Load Vectorfield
+ //   VectorField2 field;
+ //   if (!field.load(VectorfieldFilename))
+ //   {
+ //       output << "Error loading field file " << VectorfieldFilename << "\n";
+ //       return;
+ //   }
 
 	QImage image(ImageFilename.c_str());
 
@@ -242,90 +243,6 @@ void Task61::LoadFiles(){
         return;
     }
 
-
-	//Create texture
-	QImage image(ImageFilename.c_str());
-
-    //Float dimensions for RandomTexture
-	float fWidth = 8;
-	float fHeight = 8;
-
-	//Integer dimensions for RandomTexture
-	int iWidth = 8;
-	int iHeight = 8;
-
-	if(!RandomTexture) {
-		//Load the texture using Qt
-		
-		//Get its (original) dimensions. Used as bounds later.
-		fWidth = (float)image.width();
-		fHeight = (float)image.height();
-
-		//Resize to power-of-two and mirror.
-		image = image.mirrored().scaled(NextPOT(image.width()), NextPOT(image.height()));
-
-		//Get its new integer dimensions.
-		iWidth = image.width();
-		iHeight = image.height();
-	}
-
-	else {
-		//Initialize random seed
-		srand (Seed);
-	}
-
-    //Create three color channels for the texture
-    //Each of them is represented using a scalar field
-    if (bColoredTexture)
-    {
-        Red.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
-        Green.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
-        Blue.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
-
-        //Fill the scalar fields
-        for(size_t j=0; j<Red.dims()[1]; j++)
-        {
-            for(size_t i=0; i<Red.dims()[0]; i++)
-            {
-                Red.setNodeScalar(i, j, (float)(qRed(image.pixel(i, j))) / 255.0 );
-                Green.setNodeScalar(i, j, (float)(qGreen(image.pixel(i, j))) / 255.0 );
-                Blue.setNodeScalar(i, j, (float)(qBlue(image.pixel(i, j))) / 255.0 );
-            }
-        }
-    }
-
-	//Create one gray color channel represented as a scalar field
-    else{   
-		float randGray;
-		int randBW;
-
-        Gray.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
-
-        //Set the values at the vertices
-        for(size_t j=0; j<Gray.dims()[1]; j++)
-        {
-            for(size_t i=0; i<Gray.dims()[0]; i++)
-            {			
-                //Gray.setNodeScalar(i, j, (float)(qGray(image.pixel(i, j))) / 255.0 );
-				// Generate random intensities
-				if(!BWTexture){
-					randGray = (rand() % 256) / 255.0;
-					Gray.setNodeScalar(i, j, randGray);
-				}
-				else{
-					randBW = rand() % 2;
-					//output << randBW << "\n";
-					Gray.setNodeScalar(i, j, (float)(randBW));
-				}
-
-            }
-        }
-
-        //Set the texture in the viewer
-        viewer->setTextureGray(Gray.getData());
-    }
-
-    viewer->refresh();
 }
 
 
@@ -368,6 +285,8 @@ void Task61::LIC(){
 		}
 	
 	*/
+
+	/*for(float x; x<field.)*/
 }
 
 
@@ -381,23 +300,28 @@ vector<float> Task61::PositionStream(VectorField2 field, float startX, float sta
 	vector<float> forward = RungeKuttaStreamlines(field, startX, startY, pixelSize, L, false);
 	vector<float> backward = RungeKuttaStreamlines(field, startX, startY, pixelSize, L, true);
 	
-	/*//Reserving memory for the two sets of position
-	finalVector.reserve(forward.size()+backward.size());
-	finalVector.insert(finalVector.end(), forward.begin(), forward.end());
-	finalVector.insert(finalVector.end(), backward.begin(), backward.end());
+	//Get the Texture value of the point itself
+				float redVal;
+				float greenVal;
+				float blueVal;
+				float textVal;
 
-	//Adding a final point (the point byitself)
-	pStream p;
-	p.x=startX;
-	p.y=startY;
-	finalVector.push_back(p);
+			if(bColoredTexture){
+				//get color texture value for each channel (rgb)
+				redVal = (float) Red.sampleScalar(startX,startY);
+				greenVal = (float) Green.sampleScalar(startX,startY);
+				blueVal = (float) Blue.sampleScalar(startX,startY);
+			}else{
+				//Get the value for the Gray texture
+				textVal = (float) Gray.sampleScalar(startX,startY);
+			}
 
-	return finalVector;*/
-	sumVector.push_back((forward[0] + backward[0]));		//number of points
-	sumVector.push_back((forward[1] + backward[1]));		//gray sum value
-	sumVector.push_back((forward[2] + backward[2]));		//red sum value
-	sumVector.push_back((forward[3] + backward[3]));		//green sum value
-	sumVector.push_back((forward[4] + backward[4]));		//blue sum value
+	sumVector.push_back((forward[0] + backward[0]) + 1);			//number of points
+	sumVector.push_back((forward[1] + backward[1]) + textVal);		//gray sum value
+	sumVector.push_back((forward[2] + backward[2]) + redVal);				//red sum value
+	sumVector.push_back((forward[3] + backward[3]) + greenVal);				//green sum value
+	sumVector.push_back((forward[4] + backward[4]) + blueVal);				//blue sum value
+
 	return sumVector;
 }
 
