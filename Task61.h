@@ -78,6 +78,10 @@ public:
 	float RKStepSize;
 	int RKSteps;
 
+	//Resolution of texture
+	int iWidth;
+	int iHeight;
+
     ///Length of the arrows
     float ArrowScale;
 
