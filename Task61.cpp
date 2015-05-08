@@ -214,7 +214,13 @@ void Task61::LoadFiles(){
 
 	//viewer->clear();
 
-	//Load Vectorfield
+	//Load the vector field
+    if (!field.load(VectorfieldFilename))
+    {
+        output << "Error loading field file " << VectorfieldFilename << "\n";
+        return;
+    }
+
 
 	//Create texture
 	QImage image(ImageFilename.c_str());
@@ -299,26 +305,9 @@ void Task61::LoadFiles(){
 	output << "Loading done" << "\n";
 }
 
-//the Box kernel: result is the arithmetic mean of all collected pixel values.
-float calcMean(vector<pStream> pVec, ScalarField2 data){
-	float mean = 0;
-
-	for( int i = 0; i < pVec.size(); i++){
-		mean += data.nodeScalar(pVec[i].x, pVec[i].y);	//get value at pos
-	}
-
-	if(pVec.size() != 0){
-			mean = mean/pVec.size();
-	}
-
-	return mean;
-}
-
-
 void Task61::LIC(){
 	output << "in LIC" << "\n";
-	vector <pStream> test;
-	calcMean(test, Gray);
+
 
 	/* Algorithm
 	
@@ -336,24 +325,39 @@ void Task61::LIC(){
 
 		Set pixel intensity with result from LIC
 	}
-	
+	*/
+	/*
+		//for each cell/pixel calculate the value for that cell/pixel
+		vector<float> TextSum = PositionStream(field, float startX, float startY, float pixelSize, float L);
+		//the Box kernel: result is the arithmetic mean of all collected pixel values.
+		if(TextSum != 0){
+			if(bColoredTexture){
+				//for color
+				float rmean = TextSum[2]/TextSum[0];
+				float gmean = TextSum[3]/TextSum[0];
+				float bmean = TextSum[4]/TextSum[0];
+			}
+			else{
+				//for grayscale and black&white
+				float mean = TextSum[1]/TextSum[0];
+			}
+		}
 	
 	*/
-
 }
 
 
 //Calculating position of the stream line
-vector<pStream> Task61::PositionStream(VectorField2 field, float startX, float startY, float pixelSize, float L){
+vector<float> Task61::PositionStream(VectorField2 field, float startX, float startY, float pixelSize, float L){
 	
 	//Final vector to be returned
-	vector<pStream> finalVector;
+	vector<float> sumVector;
 
 	//Vectors that will contain the positions of the stream line (-L to L)
-	vector<pStream> forward=RungeKuttaStreamlines(field, startX, startY, pixelSize, L, false);
-	vector<pStream> backward=RungeKuttaStreamlines(field, startX, startY, pixelSize, L, true);
+	vector<float> forward = RungeKuttaStreamlines(field, startX, startY, pixelSize, L, false);
+	vector<float> backward = RungeKuttaStreamlines(field, startX, startY, pixelSize, L, true);
 	
-	//Reserving memory for the two sets of position
+	/*//Reserving memory for the two sets of position
 	finalVector.reserve(forward.size()+backward.size());
 	finalVector.insert(finalVector.end(), forward.begin(), forward.end());
 	finalVector.insert(finalVector.end(), backward.begin(), backward.end());
@@ -364,15 +368,26 @@ vector<pStream> Task61::PositionStream(VectorField2 field, float startX, float s
 	p.y=startY;
 	finalVector.push_back(p);
 
-	return finalVector;
+	return finalVector;*/
+	sumVector.push_back((forward[0] + backward[0]));		//number of points
+	sumVector.push_back((forward[1] + backward[1]));		//gray sum value
+	sumVector.push_back((forward[2] + backward[2]));		//red sum value
+	sumVector.push_back((forward[3] + backward[3]));		//green sum value
+	sumVector.push_back((forward[4] + backward[4]));		//blue sum value
+	return sumVector;
 }
 
 
 //Runge-Kutta
- vector<pStream> Task61::RungeKuttaStreamlines(VectorField2 field, float startX, float startY,float stepSize, float maxLength, bool backwards){
+ vector<float> Task61::RungeKuttaStreamlines(VectorField2 field, float startX, float startY,float stepSize, float maxLength, bool backwards){
 
-	 //The vector to be returned with the positions
-	 vector<pStream> positions;
+	//The vector to be returned with the number of points processed and subtotal
+	vector<float> partSum;
+	float nPoint = 0;
+	float subtotal = 0;		//gray or black/white
+	float redsubtotal = 0;
+	float greensubtotal = 0;
+	float bluesubtotal = 0;
 
 	//Defining the start point
 	Vector2f startPoint = makeVector2f(startX,startY);
@@ -474,16 +489,38 @@ vector<pStream> Task61::PositionStream(VectorField2 field, float startX, float s
 		//}
 		else {
 			//Adding the point in the vector of positions
-			pStream point;
+			/*pStream point;
 			point.x=x1[0];
 			point.y=x1[1];
 			
 			positions.push_back(point);
-			x = x1;
+			x = x1;*/
+
+		//Get the Texture value at the point	
+			if(bColoredTexture){
+				//get color texture value for each channel (rgb)
+				float redVal = (float) Red.sampleScalar(x1[0],x1[1]);
+				redsubtotal += redVal;
+				float greenVal = (float) Green.sampleScalar(x1[0],x1[1]);
+				greensubtotal += greenVal;
+				float blueVal = (float) Blue.sampleScalar(x1[0],x1[1]);
+				bluesubtotal += blueVal;
+				nPoint++;
+			}
+			else{
+				//Get the value for the Gray texture
+				float textVal = (float) Gray.sampleScalar(x1[0],x1[1]);
+				subtotal += textVal;
+				nPoint++;
+			}
 		}
 	}
-	
-	return positions;
+	partSum.push_back(nPoint);
+	partSum.push_back(subtotal);
+	partSum.push_back(redsubtotal);
+	partSum.push_back(greensubtotal);
+	partSum.push_back(bluesubtotal);
+	return partSum;
 }
 
 
