@@ -124,15 +124,23 @@ void Task61::DrawTexture()
 {
     viewer->clear();
 
+	//Load Vectorfield
+    VectorField2 field;
+    if (!field.load(VectorfieldFilename))
+    {
+        output << "Error loading field file " << VectorfieldFilename << "\n";
+        return;
+    }
+
 	QImage image(ImageFilename.c_str());
 
     //Float dimensions for RandomTexture
-	float fWidth = 8;
-	float fHeight = 8;
+	float fWidth = abs(field.boundMax()[0] - field.boundMin()[0]);
+	float fHeight = abs(field.boundMax()[1] - field.boundMin()[1]);
 
-	//Integer dimensions for RandomTexture
-	int iWidth = 8;
-	int iHeight = 8;
+	//Integer dimensions for RandomTexture (desired resolution)
+	int iWidth = 256;
+	int iHeight = 512;
 
 	if(!RandomTexture) {
 		//Load the texture using Qt
@@ -184,103 +192,16 @@ void Task61::DrawTexture()
 		float randGray;
 		int randBW;
 
-        Gray.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
+        Gray.init(makeVector2f(field.boundMin()[0], field.boundMin()[1]), makeVector2f(field.boundMax()[0], field.boundMax()[1]), makeVector2ui(iWidth, iHeight));
 
-        //Set the values at the vertices
-        for(size_t j=0; j<Gray.dims()[1]; j++)
+        //Set the values at the vertices (i and j have to be integers)
+        for(int j=0; j<Gray.dims()[1]; j++)
         {
-            for(size_t i=0; i<Gray.dims()[0]; i++)
+            for(int i=0; i<Gray.dims()[0]; i++)
             {
                 //Gray.setNodeScalar(i, j, (float)(qGray(image.pixel(i, j))) / 255.0 );
 				
 				// Generate random intensities
-				//randGray = (rand() % 256) / 255.0;
-				randBW = rand() % 2;
-
-				//output << randBW << "\n";
-				Gray.setNodeScalar(i, j, (float)(randBW));
-            }
-        }
-
-        //Set the texture in the viewer
-        viewer->setTextureGray(Gray.getData());
-    }
-
-    viewer->refresh();
-}
-
-//Load file and create data
-void Task61::LoadFiles(){
-
-	//viewer->clear();
-
-	//Load Vectorfield
-
-	//Create texture
-	QImage image(ImageFilename.c_str());
-
-    //Float dimensions for RandomTexture
-	float fWidth = 8;
-	float fHeight = 8;
-
-	//Integer dimensions for RandomTexture
-	int iWidth = 8;
-	int iHeight = 8;
-
-	if(!RandomTexture) {
-		//Load the texture using Qt
-		
-		//Get its (original) dimensions. Used as bounds later.
-		fWidth = (float)image.width();
-		fHeight = (float)image.height();
-
-		//Resize to power-of-two and mirror.
-		image = image.mirrored().scaled(NextPOT(image.width()), NextPOT(image.height()));
-
-		//Get its new integer dimensions.
-		iWidth = image.width();
-		iHeight = image.height();
-	}
-
-	else {
-		//Initialize random seed
-		srand (Seed);
-	}
-
-    //Create three color channels for the texture
-    //Each of them is represented using a scalar field
-    if (bColoredTexture)
-    {
-        Red.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
-        Green.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
-        Blue.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
-
-        //Fill the scalar fields
-        for(size_t j=0; j<Red.dims()[1]; j++)
-        {
-            for(size_t i=0; i<Red.dims()[0]; i++)
-            {
-                Red.setNodeScalar(i, j, (float)(qRed(image.pixel(i, j))) / 255.0 );
-                Green.setNodeScalar(i, j, (float)(qGreen(image.pixel(i, j))) / 255.0 );
-                Blue.setNodeScalar(i, j, (float)(qBlue(image.pixel(i, j))) / 255.0 );
-            }
-        }
-    }
-
-	//Create one gray color channel represented as a scalar field
-    else{   
-		float randGray;
-		int randBW;
-
-        Gray.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
-
-        //Set the values at the vertices
-        for(size_t j=0; j<Gray.dims()[1]; j++)
-        {
-            for(size_t i=0; i<Gray.dims()[0]; i++)
-            {			
-                //Gray.setNodeScalar(i, j, (float)(qGray(image.pixel(i, j))) / 255.0 );
-				
 				// Generate random intensities
 				if(!BWTexture){
 					randGray = (rand() % 256) / 255.0;
@@ -291,12 +212,111 @@ void Task61::LoadFiles(){
 					//output << randBW << "\n";
 					Gray.setNodeScalar(i, j, (float)(randBW));
 				}
+
             }
         }
-		//viewer->setTextureGray(Gray.getData());
+
+        //Set the texture in the viewer
+        viewer->setTextureGray(Gray.getData());
     }
-	//viewer->refresh();
-	output << "Loading done" << "\n";
+
+    viewer->refresh();
+}
+
+////Load file and create data
+void Task61::LoadFiles(){
+//
+//	//viewer->clear();
+//
+//	//Load Vectorfield
+//    VectorField2 field;
+//    if (!field.load(VectorfieldFilename))
+//    {
+//        output << "Error loading field file " << VectorfieldFilename << "\n";
+//        return;
+//    }
+//
+//	//Create texture
+//	QImage image(ImageFilename.c_str());
+//
+//    //Float dimensions for RandomTexture
+//	float fWidth = field.boundMax()[0] - field.boundMin()[0];
+//	float fHeight = field.boundMax()[1] - field.boundMin()[1];
+//
+//	//Integer dimensions for RandomTexture
+//	int iWidth = 512;
+//	int iHeight = 512;
+//
+//	if(!RandomTexture) {
+//		//Load the texture using Qt
+//		
+//		//Get its (original) dimensions. Used as bounds later.
+//		fWidth = (float)image.width();
+//		fHeight = (float)image.height();
+//
+//		//Resize to power-of-two and mirror.
+//		image = image.mirrored().scaled(NextPOT(image.width()), NextPOT(image.height()));
+//
+//		//Get its new integer dimensions.
+//		iWidth = image.width();
+//		iHeight = image.height();
+//	}
+//
+//	else {
+//		//Initialize random seed
+//		srand (Seed);
+//	}
+//
+//    //Create three color channels for the texture
+//    //Each of them is represented using a scalar field
+//    if (bColoredTexture)
+//    {
+//        Red.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
+//        Green.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
+//        Blue.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
+//
+//        //Fill the scalar fields
+//        for(size_t j=0; j<Red.dims()[1]; j++)
+//        {
+//            for(size_t i=0; i<Red.dims()[0]; i++)
+//            {
+//                Red.setNodeScalar(i, j, (float)(qRed(image.pixel(i, j))) / 255.0 );
+//                Green.setNodeScalar(i, j, (float)(qGreen(image.pixel(i, j))) / 255.0 );
+//                Blue.setNodeScalar(i, j, (float)(qBlue(image.pixel(i, j))) / 255.0 );
+//            }
+//        }
+//    }
+//
+//	//Create one gray color channel represented as a scalar field
+//    else{   
+//		float randGray;
+//		int randBW;
+//
+//        Gray.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
+//
+//        //Set the values at the vertices
+//        for(float j=0.0; j<Gray.dims()[1]; j+=0.1)
+//        {
+//            for(float i=0.0; i<Gray.dims()[0]; i+=0.1)
+//            {			
+//                //Gray.setNodeScalar(i, j, (float)(qGray(image.pixel(i, j))) / 255.0 );
+//				
+//				// Generate random intensities
+//				if(!BWTexture){
+//					randGray = (rand() % 256) / 255.0;
+//					Gray.setNodeScalar(i, j, randGray);
+//				}
+//				else{
+//					randBW = rand() % 2;
+//					//output << randBW << "\n";
+//					Gray.setNodeScalar(i, j, (float)(randBW));
+//				}
+//            }
+//        }
+//		//viewer->setTextureGray(Gray.getData());
+//    }
+//	//viewer->refresh();
+//	output << "Loading done" << "\n";
 }
 
 //the Box kernel: result is the arithmetic mean of all collected pixel values.
