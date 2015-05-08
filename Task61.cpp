@@ -93,9 +93,9 @@ void Task61::DrawVectorField()
     //}
 
     //Draw vector directions (constant length)
-    for(float32 x=field.boundMin()[0]; x<=field.boundMax()[0]; x+=0.2)
+    for(float32 x=field.boundMin()[0]; x<=field.boundMax()[0]; x+=0.02)
     {
-        for(float32 y=field.boundMin()[1]; y<=field.boundMax()[1]; y+=0.2)
+        for(float32 y=field.boundMin()[1]; y<=field.boundMax()[1]; y+=0.02)
         {
             Vector2f vec = field.sample(x,y);
             vec.normalize();
@@ -343,27 +343,27 @@ vector<float> Task61::SumStream(VectorField2 field, float startX, float startY, 
 	vector<float> forward = RungeKuttaStreamlines(field, startX, startY, pixelSize, L, false);
 	vector<float> backward = RungeKuttaStreamlines(field, startX, startY, pixelSize, L, true);
 	
-	//Get the Texture value of the point itself
-				float redVal=0;
-				float greenVal=0;
-				float blueVal=0;
-				float textVal=0;
+	////Get the Texture value of the point itself
+	//			float redVal=0;
+	//			float greenVal=0;
+	//			float blueVal=0;
+	//			float textVal=0;
 
-			if(bColoredTexture){
-				//get color texture value for each channel (rgb)
-				redVal = (float) Red.sampleScalar(startX,startY);
-				greenVal = (float) Green.sampleScalar(startX,startY);
-				blueVal = (float) Blue.sampleScalar(startX,startY);
-			}else{
-				//Get the value for the Gray texture
-				textVal = (float) Gray.sampleScalar(startX,startY);
-			}
+	//		if(bColoredTexture){
+	//			//get color texture value for each channel (rgb)
+	//			redVal = (float) Red.sampleScalar(startX,startY);
+	//			greenVal = (float) Green.sampleScalar(startX,startY);
+	//			blueVal = (float) Blue.sampleScalar(startX,startY);
+	//		}else{
+	//			//Get the value for the Gray texture
+	//			textVal = (float) Gray.sampleScalar(startX,startY);
+	//		}
 
-	sumVector.push_back((forward[0] + backward[0]) + 1);			//number of points
-	sumVector.push_back((forward[1] + backward[1]) + textVal);		//gray sum value
-	sumVector.push_back((forward[2] + backward[2]) + redVal);				//red sum value
-	sumVector.push_back((forward[3] + backward[3]) + greenVal);				//green sum value
-	sumVector.push_back((forward[4] + backward[4]) + blueVal);				//blue sum value
+	sumVector.push_back((forward[0] + backward[0]));			//number of points
+	sumVector.push_back((forward[1] + backward[1]));		//gray sum value
+	sumVector.push_back((forward[2] + backward[2]));				//red sum value
+	sumVector.push_back((forward[3] + backward[3]));				//green sum value
+	sumVector.push_back((forward[4] + backward[4]));				//blue sum value
 
 	return sumVector;
 }
@@ -484,8 +484,27 @@ vector<float> Task61::SumStream(VectorField2 field, float startX, float startY, 
 			point.x=x1[0];
 			point.y=x1[1];
 			
-			positions.push_back(point);
-			x = x1;*/
+			positions.push_back(point);*/
+			if(i==0 && backwards) {
+				//Get the Texture value at the point	
+				if(bColoredTexture){
+					//get color texture value for each channel (rgb)
+					float redVal = (float) Red.sampleScalar(x[0],x[1]);
+					redsubtotal += redVal;
+					float greenVal = (float) Green.sampleScalar(x[0],x[1]);
+					greensubtotal += greenVal;
+					float blueVal = (float) Blue.sampleScalar(x[0],x[1]);
+					bluesubtotal += blueVal;
+					nPoint++;
+				}
+				else{
+					//Get the value for the Gray texture
+					float textVal = (float) Gray.sampleScalar(x[0],x[1]);
+					subtotal += textVal;
+					nPoint++;
+				}
+			}
+
 
 		//Get the Texture value at the point	
 			if(bColoredTexture){
@@ -504,7 +523,9 @@ vector<float> Task61::SumStream(VectorField2 field, float startX, float startY, 
 				subtotal += textVal;
 				nPoint++;
 			}
+			x = x1;
 		}
+		
 	}
 	partSum.push_back(nPoint);
 	partSum.push_back(subtotal);
