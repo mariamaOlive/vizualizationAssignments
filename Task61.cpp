@@ -19,6 +19,8 @@ IMPLEMENT_GEOX_CLASS( Task61, 0)
 {
     BEGIN_CLASS_INIT( Task61 );
 
+	ADD_NOARGS_METHOD(Task61::LoadFiles)
+
     ADD_SEPARATOR("Vectorfield")
     ADD_FLOAT32_PROP(ArrowScale, 0)
     ADD_NOARGS_METHOD(Task61::DrawVectorField)
@@ -40,7 +42,7 @@ IMPLEMENT_GEOX_CLASS( Task61, 0)
 	ADD_BOOLEAN_PROP(BWTexture, 0)
 
 	ADD_NOARGS_METHOD(Task61::LIC)
-	ADD_NOARGS_METHOD(Task61::LoadFiles)
+
 }
 
 QWidget* Task61::createViewer()
@@ -145,12 +147,12 @@ void Task61::DrawTexture()
 	if(fWidth > fHeight) {
 		int factor = ceil(fWidth/fHeight);
 		iHeight = minRes;
-		iWidth  = NextPOT(minRes*factor);
+		iWidth  = (NextPOT(minRes*factor)>=1024) ? 1024 : NextPOT(minRes*factor); //Max is 1024
 	}
 	else {
 		int factor = ceil(fHeight/fWidth);
 		iWidth   = minRes;
-		iHeight  = NextPOT(minRes*factor);
+		iHeight  = (NextPOT(minRes*factor)>=1024) ? 1024 : NextPOT(minRes*factor);
 	}
 	
 	//Integer dimensions for RandomTexture (desired resolution)
@@ -174,7 +176,6 @@ void Task61::DrawTexture()
 	else {
 		//Initialize random seed
 		srand (Seed);
-
 	}
 
 
@@ -204,7 +205,7 @@ void Task61::DrawTexture()
     {
         //Create one gray color channel represented as a scalar field
 		float randGray;
-		int randBW;
+		int randBW=0;
 
         Gray.init(makeVector2f(field.boundMin()[0], field.boundMin()[1]), makeVector2f(field.boundMax()[0], field.boundMax()[1]), makeVector2ui(iWidth, iHeight));
 
@@ -216,11 +217,16 @@ void Task61::DrawTexture()
                 //Gray.setNodeScalar(i, j, (float)(qGray(image.pixel(i, j))) / 255.0 );
 				
 				// Generate random intensities
-				//randGray = (rand() % 256) / 255.0;
-				randBW = rand() % 2;
 
-				//output << randBW << "\n";
-				Gray.setNodeScalar(i, j, (float)(randBW));
+				if(!BWTexture){
+					randGray = (rand() % 256) / 255.0;
+					Gray.setNodeScalar(i, j, randGray);
+				}
+				else{
+					randBW = rand() % 2;
+					//output << randBW << "\n";
+					Gray.setNodeScalar(i, j, (float)(randBW));
+				}
             }
         }
 
