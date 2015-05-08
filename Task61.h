@@ -43,8 +43,8 @@ public:
 
 	void LoadFiles();
 	void LIC();
-	vector<pStream> PositionStream(VectorField2 field, float startX, float startY, float pixelSize, float L);
-	vector<pStream> RungeKuttaStreamlines(VectorField2 field, float startX, float startY,float stepSize, float length, bool backwards);
+	vector<float> PositionStream(VectorField2 field, float startX, float startY, float pixelSize, float L);
+	vector<float> RungeKuttaStreamlines(VectorField2 field, float startX, float startY,float stepSize, float length, bool backwards);
 
 //Attributes
 public:
