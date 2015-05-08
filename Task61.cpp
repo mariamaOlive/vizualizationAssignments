@@ -249,6 +249,10 @@ void Task61::LoadFiles(){
 void Task61::LIC(){
 	output << "in LIC" << "\n";
 
+	ScalarField2 drawnGreyField;
+
+	drawnGreyField.init(makeVector2f(field.boundMin()[0], field.boundMin()[1]), makeVector2f(field.boundMax()[0], field.boundMax()[1]), makeVector2ui(iWidth, iHeight));
+
 
 	/* Algorithm
 	
@@ -286,12 +290,41 @@ void Task61::LIC(){
 	
 	*/
 
-	/*for(float x; x<field.)*/
+	float pixelSizeX=abs(field.boundMax()[0] - field.boundMin()[0])/iWidth;
+	float pixelSizeY= abs(field.boundMax()[1] - field.boundMin()[1])/iHeight;
+
+	float x;
+	int i;
+	//Iterate over the pixels in the vector field in order to draw the surface
+	for(x=field.boundMin()[0], i=0; i<drawnGreyField.dims()[0]; x=x+pixelSizeX, i++){
+		float y;
+		int j;
+		for(y=field.boundMin()[0], j=0; j<drawnGreyField.dims()[0]; y=y+pixelSizeY, j++){
+		
+			float pixelSize= (pixelSizeX+pixelSizeY)/2;
+
+			//Calling the function responsible to get the sum of -L to L in the coord
+			vector<float> TextSum = SumStream(field, x, y,pixelSize,KernelSize);
+
+				if(bColoredTexture){
+					//for color
+					float rmean = TextSum[2]/TextSum[0];
+					float gmean = TextSum[3]/TextSum[0];
+					float bmean = TextSum[4]/TextSum[0];
+				}
+				else{
+					//for grayscale and black&white
+					float mean = TextSum[1]/TextSum[0];
+					drawnGreyField.setNodeScalar(i,j,mean);
+				}
+		}
+	}
+	viewer->refresh();
 }
 
 
 //Calculating position of the stream line
-vector<float> Task61::PositionStream(VectorField2 field, float startX, float startY, float pixelSize, float L){
+vector<float> Task61::SumStream(VectorField2 field, float startX, float startY, float pixelSize, float L){
 	
 	//Final vector to be returned
 	vector<float> sumVector;
@@ -301,10 +334,10 @@ vector<float> Task61::PositionStream(VectorField2 field, float startX, float sta
 	vector<float> backward = RungeKuttaStreamlines(field, startX, startY, pixelSize, L, true);
 	
 	//Get the Texture value of the point itself
-				float redVal;
-				float greenVal;
-				float blueVal;
-				float textVal;
+				float redVal=0;
+				float greenVal=0;
+				float blueVal=0;
+				float textVal=0;
 
 			if(bColoredTexture){
 				//get color texture value for each channel (rgb)
