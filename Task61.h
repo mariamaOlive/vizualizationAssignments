@@ -79,6 +79,7 @@ public:
 	int RKSteps;
 
 	//Resolution of texture
+	int minRes;
 	int iWidth;
 	int iHeight;
 

@@ -35,6 +35,7 @@ IMPLEMENT_GEOX_CLASS( Task61, 0)
 	ADD_INT32_PROP(SampleX, 0)
 	ADD_INT32_PROP(SampleY, 0)
 	ADD_INT32_PROP(KernelSize, 0)
+	ADD_INT32_PROP(minRes, 0)
 	ADD_INT32_PROP(Seed, 0)
 	ADD_BOOLEAN_PROP(RandomTexture, 0)
 	ADD_BOOLEAN_PROP(FastLIC, 0)
@@ -63,8 +64,9 @@ Task61::Task61()
 
 	SampleX = 64;
 	SampleY = 64;
-	KernelSize = 1;
+	KernelSize = 0.1;
 	Seed = 1;
+	minRes = 8;
 
 	RandomTexture = true;
 	FastLIC = false;
@@ -142,8 +144,6 @@ void Task61::DrawTexture()
 	float fHeight = abs(field.boundMax()[1] - field.boundMin()[1]);
 
 	//Adjustments for the resolution
-	int minRes = 512;
-
 	if(fWidth > fHeight) {
 		int factor = ceil(fWidth/fHeight);
 		iHeight = minRes;
@@ -301,16 +301,19 @@ void Task61::LIC(){
 
 	float x;
 	int i;
+	
+	viewer->clear();
+
 	//Iterate over the pixels in the vector field in order to draw the surface
 	for(x=field.boundMin()[0], i=0; i<drawnGreyField.dims()[0]; x=x+pixelSizeX, i++){
 		float y;
 		int j;
-		for(y=field.boundMin()[0], j=0; j<drawnGreyField.dims()[0]; y=y+pixelSizeY, j++){
+		for(y=field.boundMin()[1], j=0; j<drawnGreyField.dims()[1]; y=y+pixelSizeY, j++){
 		
 			float pixelSize= (pixelSizeX+pixelSizeY)/2;
 
 			//Calling the function responsible to get the sum of -L to L in the coord
-			vector<float> TextSum = SumStream(field, x, y,pixelSize,KernelSize);
+			vector<float> TextSum = SumStream(field, x, y, pixelSize, KernelSize);
 
 				if(bColoredTexture){
 					//for color
