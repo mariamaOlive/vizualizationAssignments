@@ -34,7 +34,7 @@ IMPLEMENT_GEOX_CLASS( Task61, 0)
 	ADD_STRING_PROP(VectorfieldFilename, 0)
 	ADD_INT32_PROP(SampleX, 0)
 	ADD_INT32_PROP(SampleY, 0)
-	ADD_INT32_PROP(KernelSize, 0)
+	ADD_FLOAT32_PROP(KernelSize, 0)
 	ADD_INT32_PROP(minRes, 0)
 	ADD_INT32_PROP(Seed, 0)
 	ADD_BOOLEAN_PROP(RandomTexture, 0)
@@ -299,16 +299,16 @@ void Task61::LIC(){
 	float pixelSizeX=abs(field.boundMax()[0] - field.boundMin()[0])/iWidth;
 	float pixelSizeY= abs(field.boundMax()[1] - field.boundMin()[1])/iHeight;
 
-	float x;
-	int i;
+	float y;
+	int j;
 	
 	viewer->clear();
 
 	//Iterate over the pixels in the vector field in order to draw the surface
-	for(x=field.boundMin()[0], i=0; i<drawnGreyField.dims()[0]; x=x+pixelSizeX, i++){
-		float y;
-		int j;
-		for(y=field.boundMin()[1], j=0; j<drawnGreyField.dims()[1]; y=y+pixelSizeY, j++){
+	for(y=field.boundMin()[1], j=0; j<drawnGreyField.dims()[1]; y=y+pixelSizeY, j++){
+		float x;
+		int i;
+		for(x=field.boundMin()[0], i=0; i<drawnGreyField.dims()[0]; x=x+pixelSizeX, i++){
 		
 			float pixelSize= (pixelSizeX+pixelSizeY)/2;
 
@@ -328,6 +328,7 @@ void Task61::LIC(){
 				}
 		}
 	}
+	viewer->setTextureGray(drawnGreyField.getData());
 	viewer->refresh();
 }
 
@@ -384,7 +385,7 @@ vector<float> Task61::SumStream(VectorField2 field, float startX, float startY, 
 	
 	Vector2f x = makeVector2f(startPoint[0], startPoint[1]);
 
-	float RKStepSize2 = backwards ? -RKStepSize : RKStepSize; // if "backwards" is checked, inverts sign of integration step
+	float RKStepSize2 = backwards ? -stepSize : stepSize; // if "backwards" is checked, inverts sign of integration step
 	float a, b, length, speed;
 	float arcLength = 0;
 	bool outOfBounds = false;
@@ -414,25 +415,25 @@ vector<float> Task61::SumStream(VectorField2 field, float startX, float startY, 
 
 	//The 4 vectors of th RK method
 		Vector2f v1 = field.sample(x[0],x[1]);
-		float test=v1.getSqrNorm();
+		//float test=v1.getSqrNorm();
 		v1.normalize();
 		
 
 		Vector2f v2p = makeVector2f((x[0]+RKStepSize2*v1[0]/2),(x[1]+RKStepSize2*v1[1]/2));
 		Vector2f v2 = field.sample(v2p[0],v2p[1]);
-		test=v2.getSqrNorm();
+		//test=v2.getSqrNorm();
 		v2.normalize();
 		
 
 		Vector2f v3p = makeVector2f((x[0]+RKStepSize2*v2[0]/2),(x[1]+RKStepSize2*v2[1]/2));
 		Vector2f v3 = field.sample(v3p[0],v3p[1]);
-		test=v3.getSqrNorm();
+		//test=v3.getSqrNorm();
 		v3.normalize();
 
 
 		Vector2f v4p = makeVector2f((x[0]+RKStepSize2*v3[0]),(x[1]+RKStepSize2*v3[1]));
 		Vector2f v4 = field.sample(v4p[0],v4p[1]);
-		test=v4.getSqrNorm();
+		//test=v4.getSqrNorm();
 		v4.normalize();
 
 	//Combine the 4 vectors to get the end position

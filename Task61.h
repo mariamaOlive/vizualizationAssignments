@@ -62,7 +62,7 @@ public:
 	//Values for LIC
 	int SampleX;
 	int SampleY;
-	int KernelSize;
+	float KernelSize;
 	int Seed;
 	bool RandomTexture;
 	bool FastLIC;
