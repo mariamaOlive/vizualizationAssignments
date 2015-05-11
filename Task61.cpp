@@ -257,7 +257,7 @@ void Task61::LoadFiles(){
 
 
 void Task61::LIC(){
-	output << "in LIC" << "\n";
+	//output << "in LIC" << "\n";
 
 	//ScalarField2 drawnGrayField;
 
@@ -346,10 +346,10 @@ void Task61::LIC(){
 		}
 	}
 	//Contrast final calculations
-	output << "Contrast: n = " << n << "; accMeans=" << accMeans << "; accStdDev=" << accStdDev << "\n";
+	//output << "Contrast: n = " << n << "; accMeans=" << accMeans << "; accStdDev=" << accStdDev << "\n";
 	oldMean = accMeans / n;
 	oldStdDev = sqrt((accStdDev - n*pow(oldMean,2))/(n-1));
-	output << "Contrast: n = " << n << "; oldMean=" << oldMean << "; oldStdDev=" << oldStdDev << "\n";
+	//output << "Contrast: n = " << n << "; oldMean=" << oldMean << "; oldStdDev=" << oldStdDev << "\n";
 	
 	viewer->setTextureGray(drawnGrayField.getData());
 	viewer->refresh();
@@ -589,7 +589,7 @@ void Task61::EnhanceContrast(){
 					float oldValue = (float) drawnGrayField.sampleScalar(x,y);
 					float newValue = newMean + (newStdDev / oldStdDev)*(oldValue - oldMean); // slide 44, Lecture 07
 					contrastGrayField.setNodeScalar(i,j,newValue); // draws the output pixel
-					output << "oldValue= " << oldValue << "; newValue= " << newValue << "\n";
+					//output << "oldValue= " << oldValue << "; newValue= " << newValue << "\n";
 				}
 		}
 
@@ -720,10 +720,10 @@ vector<pStream> Task61::PositionStream(VectorField2 field, float startX, float s
 		if ((x1[0] < field.boundMin()[0])||(x1[0] > field.boundMax()[0])||(x1[1] < field.boundMin()[1])||(x1[1] > field.boundMax()[1])) {
 			outOfBounds = true;
 			//if(printComments)
-			  output << "Out of bounds! \n";
+			  //output << "Out of bounds! \n";
 		}else if(speed==0){
 			zeroSpeed=true;
-			output<<"zero speed"<< "\n";
+			//output<<"zero speed"<< "\n";
 		}
 		//else if (speed < MinSpeed) {
 		//	tooSlow = true;
