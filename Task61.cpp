@@ -43,6 +43,8 @@ IMPLEMENT_GEOX_CLASS( Task61, 0)
 	ADD_BOOLEAN_PROP(BWTexture, 0)
 
 	ADD_NOARGS_METHOD(Task61::LIC)
+	ADD_NOARGS_METHOD(Task61::EnhanceContrast)
+	
 
 }
 
@@ -56,7 +58,7 @@ Task61::Task61()
 {
     viewer = NULL;
 
-    VectorfieldFilename = "boussinesq2CT522.am";
+    VectorfieldFilename = "Sink.am";
 
     ArrowScale = 0.1;
     ImageFilename = "";
@@ -255,9 +257,9 @@ void Task61::LoadFiles(){
 void Task61::LIC(){
 	output << "in LIC" << "\n";
 
-	ScalarField2 drawnGreyField;
+	//ScalarField2 drawnGrayField;
 
-	drawnGreyField.init(makeVector2f(field.boundMin()[0], field.boundMin()[1]), makeVector2f(field.boundMax()[0], field.boundMax()[1]), makeVector2ui(iWidth, iHeight));
+	drawnGrayField.init(makeVector2f(field.boundMin()[0], field.boundMin()[1]), makeVector2f(field.boundMax()[0], field.boundMax()[1]), makeVector2ui(iWidth, iHeight));
 
 
 	/* Algorithm
@@ -299,16 +301,20 @@ void Task61::LIC(){
 	float pixelSizeX=abs(field.boundMax()[0] - field.boundMin()[0])/iWidth;
 	float pixelSizeY= abs(field.boundMax()[1] - field.boundMin()[1])/iHeight;
 
-	float y;
-	int j;
-	
 	viewer->clear();
 
+	//Contrast-related variables
+	accMeans = 0;
+	accStdDev = 0;
+	n = 0;
+
+	float y;
+	int j;
 	//Iterate over the pixels in the vector field in order to draw the surface
-	for(y=field.boundMin()[1], j=0; j<drawnGreyField.dims()[1]; y=y+pixelSizeY, j++){
+	for(y=field.boundMin()[1], j=0; j<drawnGrayField.dims()[1]; y=y+pixelSizeY, j++){
 		float x;
 		int i;
-		for(x=field.boundMin()[0], i=0; i<drawnGreyField.dims()[0]; x=x+pixelSizeX, i++){
+		for(x=field.boundMin()[0], i=0; i<drawnGrayField.dims()[0]; x=x+pixelSizeX, i++){
 		
 			float pixelSize= (pixelSizeX+pixelSizeY)/2;
 
@@ -324,11 +330,26 @@ void Task61::LIC(){
 				else{
 					//for grayscale and black&white
 					float mean = TextSum[1]/TextSum[0];
-					drawnGreyField.setNodeScalar(i,j,mean);
+					drawnGrayField.setNodeScalar(i,j,mean); // draws the output pixel
+					
+					//Contrast-related variables
+					if (mean > 0.01) {		//Non-black pixels = those > 0.01 (0 is total black) 
+						n++;
+						accMeans += mean;
+						accStdDev += pow(mean, 2);
+						//output << "mean= " << mean << "\n";
+					}
+
 				}
 		}
 	}
-	viewer->setTextureGray(drawnGreyField.getData());
+	//Contrast final calculations
+	output << "Contrast: n = " << n << "; accMeans=" << accMeans << "; accStdDev=" << accStdDev << "\n";
+	oldMean = accMeans / n;
+	oldStdDev = sqrt((accStdDev - n*pow(oldMean,2))/(n-1));
+	output << "Contrast: n = " << n << "; oldMean=" << oldMean << "; oldStdDev=" << oldStdDev << "\n";
+	
+	viewer->setTextureGray(drawnGrayField.getData());
 	viewer->refresh();
 }
 
@@ -533,6 +554,48 @@ vector<float> Task61::SumStream(VectorField2 field, float startX, float startY, 
 	partSum.push_back(greensubtotal);
 	partSum.push_back(bluesubtotal);
 	return partSum;
+}
+
+void Task61::EnhanceContrast(){
+	viewer->clear();
+	
+	//Contrast definitions (slide 45, Lecture 07)
+	newStdDev = 0.1;
+	newMean	  = 0.5;	
+	
+	contrastGrayField.init(makeVector2f(field.boundMin()[0], field.boundMin()[1]), makeVector2f(field.boundMax()[0], field.boundMax()[1]), makeVector2ui(iWidth, iHeight));
+
+	//Iterate over the pixels in the vector field in order to redraw the surface
+	float pixelSizeX=abs(field.boundMax()[0] - field.boundMin()[0])/iWidth;
+	float pixelSizeY= abs(field.boundMax()[1] - field.boundMin()[1])/iHeight;
+	
+	float y;
+	int j;
+
+	for(y=field.boundMin()[1], j=0; j<drawnGrayField.dims()[1]; y=y+pixelSizeY, j++){
+		float x;
+		int i;
+		for(x=field.boundMin()[0], i=0; i<drawnGrayField.dims()[0]; x=x+pixelSizeX, i++){
+			if(bColoredTexture){
+				//for color (TODO)
+					/*float rmean = ;
+					float gmean = ;
+					float bmean = ;*/
+				}
+				else{
+					//for grayscale and black&white
+					float oldValue = (float) drawnGrayField.sampleScalar(x,y);
+					float newValue = newMean + (newStdDev / oldStdDev)*(oldValue - oldMean); // slide 44, Lecture 07
+					contrastGrayField.setNodeScalar(i,j,newValue); // draws the output pixel
+					output << "oldValue= " << oldValue << "; newValue= " << newValue << "\n";
+				}
+		}
+
+	}
+	
+	viewer->setTextureGray(contrastGrayField.getData());
+	viewer->refresh();
+
 }
 
 
