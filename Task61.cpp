@@ -41,6 +41,7 @@ IMPLEMENT_GEOX_CLASS( Task61, 0)
 	ADD_BOOLEAN_PROP(FastLIC, 0)
 	ADD_BOOLEAN_PROP(AutoContrast, 0)
 	ADD_BOOLEAN_PROP(BWTexture, 0)
+	ADD_BOOLEAN_PROP(ScalarColor, 0)
 
 	ADD_NOARGS_METHOD(Task61::LIC)
 
@@ -56,7 +57,7 @@ Task61::Task61()
 {
     viewer = NULL;
 
-    VectorfieldFilename = "boussinesq2CT522.am";
+    VectorfieldFilename = "Cylinderclose2CT10.am";
 
     ArrowScale = 0.1;
     ImageFilename = "";
@@ -72,11 +73,11 @@ Task61::Task61()
 	FastLIC = false;
 	AutoContrast = false;
 	BWTexture = false;
+	ScalarColor=true;
 
 	normal = true;
 	printComments = false;
 	MinSpeed = 0.1;
-
 }
 
 Task61::~Task61() {}
@@ -248,9 +249,6 @@ void Task61::LoadFiles(){
         output << "Error loading field file " << VectorfieldFilename << "\n";
         return;
     }
-
-	vector<pStream> test=PositionStream(field, 0, 0,.05);
-
 }
 
 
@@ -258,9 +256,32 @@ void Task61::LIC(){
 	output << "in LIC" << "\n";
 
 	ScalarField2 drawnGreyField;
+	ScalarField2 drawnRedField;
+	ScalarField2 drawnGreenField;
+	ScalarField2 drawnBlueField;
 
+	//Initializing scalar fields
 	drawnGreyField.init(makeVector2f(field.boundMin()[0], field.boundMin()[1]), makeVector2f(field.boundMax()[0], field.boundMax()[1]), makeVector2ui(iWidth, iHeight));
+	drawnRedField.init(makeVector2f(field.boundMin()[0], field.boundMin()[1]), makeVector2f(field.boundMax()[0], field.boundMax()[1]), makeVector2ui(iWidth, iHeight));
+	drawnGreenField.init(makeVector2f(field.boundMin()[0], field.boundMin()[1]), makeVector2f(field.boundMax()[0], field.boundMax()[1]), makeVector2ui(iWidth, iHeight));
+	drawnBlueField.init(makeVector2f(field.boundMin()[0], field.boundMin()[1]), makeVector2f(field.boundMax()[0], field.boundMax()[1]), makeVector2ui(iWidth, iHeight));
+	
+	float pixelSizeX=abs(field.boundMax()[0] - field.boundMin()[0])/iWidth;
+	float pixelSizeY= abs(field.boundMax()[1] - field.boundMin()[1])/iHeight;
 
+	//Get the minimum/maximum value in that field
+    min = std::numeric_limits<float32>::max();
+    max = -std::numeric_limits<float32>::max();
+	for(float k=field.boundMin()[1]; k<field.boundMax()[1]; k=k+pixelSizeY)
+    {
+        for(float w=field.boundMin()[0]; w<field.boundMax()[0]; w=w+pixelSizeX)
+        {
+			Vector2f val = field.sample(k,w);
+			float speed = sqrt(pow(val[0],2)+pow(val[1],2));
+            min = speed < min ? speed : min;
+            max = speed > max ? speed : max;
+        }
+    }
 
 	/* Algorithm
 	
@@ -298,8 +319,7 @@ void Task61::LIC(){
 	
 	*/
 
-	float pixelSizeX=abs(field.boundMax()[0] - field.boundMin()[0])/iWidth;
-	float pixelSizeY= abs(field.boundMax()[1] - field.boundMin()[1])/iHeight;
+	
 
 	float y;
 	int j;
@@ -324,13 +344,42 @@ void Task61::LIC(){
 					float bmean = TextSum[4]/TextSum[0];
 				}
 				else{
-					//for grayscale and black&white
 					float mean = TextSum[1]/TextSum[0];
-					drawnGreyField.setNodeScalar(i,j,mean);
-				}
+					if(!ScalarColor){
+						//for grayscale and black&white
+						drawnGreyField.setNodeScalar(i,j,mean);
+					}else{
+						//Get scalar value of that point
+						//In our case the norm of the vector
+		
+							Vector2f sampleVector = field.sample(x, y);
+							float speed = sqrt(pow(sampleVector[0],2)+pow(sampleVector[1],2));
+							float middleSpeed= speed/2;
+
+							if(speed!=0){
+							//Defining the color of the pixel
+							float dif= abs(max-min);
+							float R = ((speed-min)/dif)*mean ;
+							float G = (1 - R)*mean; 
+							float B = 0;
+						
+							//Drawing the colored pixel on the screen
+							drawnRedField.setNodeScalar(i, j, R);
+							drawnGreenField.setNodeScalar(i, j, G);
+							drawnBlueField.setNodeScalar(i, j, B);
+							}
+					}	
+			}
 		}
 	}
-	viewer->setTextureGray(drawnGreyField.getData());
+
+	//Set the texture
+	if(!ScalarColor){
+		viewer->setTextureGray(drawnGreyField.getData());
+	}else{
+        viewer->setTextureRGB(drawnRedField.getData(), drawnGreenField.getData(), drawnBlueField.getData());
+	}
+
 	viewer->refresh();
 }
 

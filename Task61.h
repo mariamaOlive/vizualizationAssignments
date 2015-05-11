@@ -71,6 +71,7 @@ public:
 	bool FastLIC;
 	bool AutoContrast;
 	bool BWTexture;
+	bool ScalarColor;
 
 	//Variabels RK
 	float MaxLength;
@@ -94,6 +95,10 @@ public:
 
     ///Whether to draw the texture in RGB or grayscale
     bool bColoredTexture;
+
+	//Color paramenters
+	float max;
+	float min;
 
 protected:
     GLGeometryViewer* viewer;
