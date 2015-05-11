@@ -43,6 +43,7 @@ public:
 
 	void LoadFiles();
 	void LIC();
+	void EnhanceContrast();
 	vector<float> SumStream(VectorField2 field, float startX, float startY, float pixelSize, float L);
 	vector<float> RungeKuttaStreamlines(VectorField2 field, float startX, float startY,float stepSize, float length, bool backwards);
 	vector<pStream> RungeKuttaStreamlines(VectorField2 field, float startX, float startY,float stepSize, bool backwards);
@@ -61,6 +62,8 @@ public:
 	ScalarField2 Green;
 	ScalarField2 Blue;
 	VectorField2 field;
+	ScalarField2 drawnGreyField;
+	ScalarField2 contrastGrayField;
 
 	//Values for LIC
 	int SampleX;
@@ -86,6 +89,15 @@ public:
 	int minRes;
 	int iWidth;
 	int iHeight;
+
+	//Variables Enhancing Contrast
+	int n;
+	float accMeans;		// u*n
+	float accStdDev;	// P
+	float oldMean;		// u
+	float oldStdDev;	// stdDev (sigma)
+	float newMean;		// u'
+	float newStdDev;	// stdDev'
 
     ///Length of the arrows
     float ArrowScale;

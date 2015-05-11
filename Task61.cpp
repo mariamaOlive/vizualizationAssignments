@@ -44,6 +44,8 @@ IMPLEMENT_GEOX_CLASS( Task61, 0)
 	ADD_BOOLEAN_PROP(ScalarColor, 0)
 
 	ADD_NOARGS_METHOD(Task61::LIC)
+	ADD_NOARGS_METHOD(Task61::EnhanceContrast)
+	
 
 }
 
@@ -253,7 +255,7 @@ void Task61::LoadFiles(){
 
 
 void Task61::LIC(){
-	output << "in LIC" << "\n";
+	//output << "in LIC" << "\n";
 
 	ScalarField2 drawnGreyField;
 	ScalarField2 drawnRedField;
@@ -268,6 +270,7 @@ void Task61::LIC(){
 	
 	float pixelSizeX=abs(field.boundMax()[0] - field.boundMin()[0])/iWidth;
 	float pixelSizeY= abs(field.boundMax()[1] - field.boundMin()[1])/iHeight;
+
 
 	//Get the minimum/maximum value in that field
     min = std::numeric_limits<float32>::max();
@@ -321,11 +324,15 @@ void Task61::LIC(){
 
 	
 
-	float y;
-	int j;
-	
 	viewer->clear();
 
+	//Contrast-related variables
+	accMeans = 0;
+	accStdDev = 0;
+	n = 0;
+
+	float y;
+	int j;
 	//Iterate over the pixels in the vector field in order to draw the surface
 	for(y=field.boundMin()[1], j=0; j<drawnGreyField.dims()[1]; y=y+pixelSizeY, j++){
 		float x;
@@ -345,9 +352,20 @@ void Task61::LIC(){
 				}
 				else{
 					float mean = TextSum[1]/TextSum[0];
+
+
 					if(!ScalarColor){
 						//for grayscale and black&white
 						drawnGreyField.setNodeScalar(i,j,mean);
+
+						//Contrast-related variables
+						if (mean > 0.01) {		//Non-black pixels = those > 0.01 (0 is total black) 
+							n++;
+							accMeans += mean;
+							accStdDev += pow(mean, 2);
+							//output << "mean= " << mean << "\n";
+						}
+
 					}else{
 						//Get scalar value of that point
 						//In our case the norm of the vector
@@ -373,6 +391,10 @@ void Task61::LIC(){
 		}
 	}
 
+	//Contrast final calculations
+	oldMean = accMeans / n;
+	oldStdDev = sqrt((accStdDev - n*pow(oldMean,2))/(n-1));
+	
 	//Set the texture
 	if(!ScalarColor){
 		viewer->setTextureGray(drawnGreyField.getData());
@@ -586,6 +608,48 @@ vector<float> Task61::SumStream(VectorField2 field, float startX, float startY, 
 	return partSum;
 }
 
+void Task61::EnhanceContrast(){
+	viewer->clear();
+	
+	//Contrast definitions (slide 45, Lecture 07)
+	newStdDev = 0.1;
+	newMean	  = 0.5;	
+	
+	contrastGrayField.init(makeVector2f(field.boundMin()[0], field.boundMin()[1]), makeVector2f(field.boundMax()[0], field.boundMax()[1]), makeVector2ui(iWidth, iHeight));
+
+	//Iterate over the pixels in the vector field in order to redraw the surface
+	float pixelSizeX=abs(field.boundMax()[0] - field.boundMin()[0])/iWidth;
+	float pixelSizeY= abs(field.boundMax()[1] - field.boundMin()[1])/iHeight;
+	
+	float y;
+	int j;
+
+	for(y=field.boundMin()[1], j=0; j<drawnGreyField.dims()[1]; y=y+pixelSizeY, j++){
+		float x;
+		int i;
+		for(x=field.boundMin()[0], i=0; i<drawnGreyField.dims()[0]; x=x+pixelSizeX, i++){
+			if(bColoredTexture){
+				//for color (TODO)
+					/*float rmean = ;
+					float gmean = ;
+					float bmean = ;*/
+				}
+				else{
+					//for grayscale and black&white
+					float oldValue = (float) drawnGreyField.sampleScalar(x,y);
+					float newValue = newMean + (newStdDev / oldStdDev)*(oldValue - oldMean); // slide 44, Lecture 07
+					contrastGrayField.setNodeScalar(i,j,newValue); // draws the output pixel
+					//output << "oldValue= " << oldValue << "; newValue= " << newValue << "\n";
+				}
+		}
+
+	}
+	
+	viewer->setTextureGray(contrastGrayField.getData());
+	viewer->refresh();
+
+}
+
 
 //Calculating position of the stream line
 vector<pStream> Task61::PositionStream(VectorField2 field, float startX, float startY, float pixelSize){
@@ -706,10 +770,10 @@ vector<pStream> Task61::PositionStream(VectorField2 field, float startX, float s
 		if ((x1[0] < field.boundMin()[0])||(x1[0] > field.boundMax()[0])||(x1[1] < field.boundMin()[1])||(x1[1] > field.boundMax()[1])) {
 			outOfBounds = true;
 			//if(printComments)
-			  output << "Out of bounds! \n";
+			  //output << "Out of bounds! \n";
 		}else if(speed==0){
 			zeroSpeed=true;
-			output<<"zero speed"<< "\n";
+			//output<<"zero speed"<< "\n";
 		}
 		//else if (speed < MinSpeed) {
 		//	tooSlow = true;
