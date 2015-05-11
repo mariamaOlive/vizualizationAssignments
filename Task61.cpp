@@ -249,6 +249,8 @@ void Task61::LoadFiles(){
         return;
     }
 
+	vector<pStream> test=PositionStream(field, 0, 0,.05);
+
 }
 
 
@@ -468,7 +470,7 @@ vector<float> Task61::SumStream(VectorField2 field, float startX, float startY, 
 		if ((x1[0] < field.boundMin()[0])||(x1[0] > field.boundMax()[0])||(x1[1] < field.boundMin()[1])||(x1[1] > field.boundMax()[1])) {
 			outOfBounds = true;
 			//if(printComments)
-			  output << "Out of bounds! \n";
+			//  output << "Out of bounds! \n";
 		}else if(speed==0){
 			zeroSpeed=true;
 			output<<"zero speed"<< "\n";
@@ -533,6 +535,157 @@ vector<float> Task61::SumStream(VectorField2 field, float startX, float startY, 
 	partSum.push_back(greensubtotal);
 	partSum.push_back(bluesubtotal);
 	return partSum;
+}
+
+
+//Calculating position of the stream line
+vector<pStream> Task61::PositionStream(VectorField2 field, float startX, float startY, float pixelSize){
+	
+	//Final vector to be returned
+	vector<pStream> finalVector;
+
+	//Vectors that will contain the positions of the stream line (-L to L)
+	vector<pStream> forward=RungeKuttaStreamlines(field, startX, startY, pixelSize, false);
+	vector<pStream> backward=RungeKuttaStreamlines(field, startX, startY, pixelSize, true);
+	
+	//Reserving memory for the two sets of position
+	finalVector.reserve(forward.size()+backward.size()+1);
+	
+	//Adding backward
+	finalVector.insert(finalVector.end(), backward.begin(), backward.end());
+
+	//Adding a final point (the point byitself)
+	pStream p;
+	p.x=startX;
+	p.y=startY;
+	finalVector.push_back(p);
+
+	//Adding backward
+	finalVector.insert(finalVector.end(), forward.begin(), forward.end());
+
+	return finalVector;
+}
+
+
+//Runge-Kutta
+ vector<pStream> Task61::RungeKuttaStreamlines(VectorField2 field, float startX, float startY,float stepSize, bool backwards){
+
+	 //The vector to be returned with the positions
+	 vector<pStream> positions;
+
+	//Defining the start point
+	Vector2f startPoint = makeVector2f(startX,startY);
+	
+	Vector2f x = makeVector2f(startPoint[0], startPoint[1]);
+
+	float RKStepSize2 = backwards ? -stepSize : stepSize; // if "backwards" is checked, inverts sign of integration step
+	float a, b, length, speed;
+	float arcLength = 0;
+	bool outOfBounds = false;
+	bool tooSlow = false;
+	bool zeroSpeed = false;
+	bool fix=false;
+
+	//Checks if initial point is out of boundaries
+	if ((x[0] < field.boundMin()[0])||(x[0] > field.boundMax()[0])||(x[1] < field.boundMin()[1])||(x[1] > field.boundMax()[1])) {
+		outOfBounds = true;
+	//	if(printComments)
+	//	  output << "Out of bounds! \n";
+	}
+
+	//Verifing if starts at zeroSpeed
+	Vector2f sampleVector = field.sample(x[0], x[1]);
+	speed = sqrt(pow(sampleVector[0],2)+pow(sampleVector[1],2));
+
+	if(speed==0){
+		zeroSpeed=true;
+	}
+
+	//bugFix
+	float past=0;
+	for(int i = 0; ((!outOfBounds) && (!tooSlow) && (!zeroSpeed) && (!fix)); i++){
+
+	//The 4 vectors of th RK method
+		Vector2f v1 = field.sample(x[0],x[1]);
+		float test=v1.getSqrNorm();
+		v1.normalize();
+		
+
+		Vector2f v2p = makeVector2f((x[0]+RKStepSize2*v1[0]/2),(x[1]+RKStepSize2*v1[1]/2));
+		Vector2f v2 = field.sample(v2p[0],v2p[1]);
+		v2.normalize();
+		
+
+		Vector2f v3p = makeVector2f((x[0]+RKStepSize2*v2[0]/2),(x[1]+RKStepSize2*v2[1]/2));
+		Vector2f v3 = field.sample(v3p[0],v3p[1]);
+		v3.normalize();
+
+
+		Vector2f v4p = makeVector2f((x[0]+RKStepSize2*v3[0]),(x[1]+RKStepSize2*v3[1]));
+		Vector2f v4 = field.sample(v4p[0],v4p[1]);
+		v4.normalize();
+
+	//Combine the 4 vectors to get the end position
+		Vector2f x1 = makeVector2f(x[0]+RKStepSize2*(v1[0]/6 + v2[0]/3 + v3[0]/3 + v4[0]/6), x[1]+RKStepSize2*(v1[1]/6 + v2[1]/3 + v3[1]/3 + v4[1]/6));
+
+	//Calculates arc length
+		a = x1[0]-x[0];
+		b = x1[1]-x[1];
+		length = sqrt(pow(a,2)+pow(b,2));
+		arcLength += length;
+	
+		//Trick to fix crazy bug
+		if(past>length && i!=0){
+			if((past-length)>.001){
+				fix=true;
+			}
+		}else{
+			if((past-length)<-.001 && i!=0){
+				fix=true;
+			}
+		}
+		past=length;
+
+	//Calculates speed (actual vector size) by sampling
+		Vector2f sampleVector = field.sample(x1[0], x1[1]);
+		a = sampleVector[0]-x1[0];
+		b = sampleVector[1]-x1[1];
+		speed = sqrt(pow(a,2)+pow(b,2));
+		//output << "speed: " << speed << "\n";
+		
+		//Checks boundary limits
+		if ((x1[0] < field.boundMin()[0])||(x1[0] > field.boundMax()[0])||(x1[1] < field.boundMin()[1])||(x1[1] > field.boundMax()[1])) {
+			outOfBounds = true;
+			//if(printComments)
+			  output << "Out of bounds! \n";
+		}else if(speed==0){
+			zeroSpeed=true;
+			output<<"zero speed"<< "\n";
+		}
+		//else if (speed < MinSpeed) {
+		//	tooSlow = true;
+		////	//if(printComments)
+		////	  //output << "Vector speed too slow... \n";
+		//}
+		else {
+			//Adding the point in the vector of positions
+			pStream point;
+			point.x=x1[0];
+			point.y=x1[1];
+			
+			 
+			if(!backwards){
+				//forward
+				positions.push_back(point);
+			}else{
+				//backwards
+				positions.insert(positions.begin(),point);
+			}
+			x = x1;
+		}
+	}
+	
+	return positions;
 }
 
 
