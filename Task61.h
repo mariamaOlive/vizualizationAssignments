@@ -46,6 +46,9 @@ public:
 	void EnhanceContrast();
 	vector<float> SumStream(VectorField2 field, float startX, float startY, float pixelSize, float L);
 	vector<float> RungeKuttaStreamlines(VectorField2 field, float startX, float startY,float stepSize, float length, bool backwards);
+	vector<pStream> RungeKuttaStreamlines(VectorField2 field, float startX, float startY,float stepSize, bool backwards);
+	vector<pStream> PositionStream(VectorField2 field, float startX, float startY, float pixelSize);
+
 
 //Attributes
 public:
