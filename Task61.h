@@ -44,6 +44,7 @@ public:
 
 	void LoadFiles();
 	void LIC();
+	void EnhanceContrast();
 	vector<float> SumStream(VectorField2 field, float startX, float startY, float pixelSize, float L);
 	vector<float> RungeKuttaStreamlines(VectorField2 field, float startX, float startY,float stepSize, float length, bool backwards);
 	vector<pStream> RungeKuttaStreamlines(VectorField2 field, float startX, float startY,float stepSize, bool backwards);
@@ -64,6 +65,8 @@ public:
 	ScalarField2 Green;
 	ScalarField2 Blue;
 	VectorField2 field;
+	ScalarField2 drawnGreyField;
+	ScalarField2 contrastGrayField;
 
 	//Values for LIC
 	int SampleX;
@@ -74,6 +77,7 @@ public:
 	bool FastLIC;
 	bool AutoContrast;
 	bool BWTexture;
+	bool ScalarColor;
 
 	//Variabels RK
 	float MaxLength;
@@ -89,6 +93,15 @@ public:
 	int iWidth;
 	int iHeight;
 
+	//Variables Enhancing Contrast
+	int n;
+	float accMeans;		// u*n
+	float accStdDev;	// P
+	float oldMean;		// u
+	float oldStdDev;	// stdDev (sigma)
+	float newMean;		// u'
+	float newStdDev;	// stdDev'
+
     ///Length of the arrows
     float ArrowScale;
 
@@ -97,6 +110,10 @@ public:
 
     ///Whether to draw the texture in RGB or grayscale
     bool bColoredTexture;
+
+	//Color paramenters
+	float max;
+	float min;
 
 protected:
     GLGeometryViewer* viewer;

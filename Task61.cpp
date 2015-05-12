@@ -41,8 +41,11 @@ IMPLEMENT_GEOX_CLASS( Task61, 0)
 	ADD_BOOLEAN_PROP(FastLIC, 0)
 	ADD_BOOLEAN_PROP(AutoContrast, 0)
 	ADD_BOOLEAN_PROP(BWTexture, 0)
+	ADD_BOOLEAN_PROP(ScalarColor, 0)
 
 	ADD_NOARGS_METHOD(Task61::LIC)
+	ADD_NOARGS_METHOD(Task61::EnhanceContrast)
+	
 
 }
 
@@ -72,11 +75,11 @@ Task61::Task61()
 	FastLIC = true;
 	AutoContrast = false;
 	BWTexture = false;
+	ScalarColor=true;
 
 	normal = true;
 	printComments = false;
 	MinSpeed = 0.1;
-
 }
 
 Task61::~Task61() {}
@@ -260,16 +263,39 @@ void Task61::LoadFiles(){
     }
 
 	//vector<pStream> test=PositionStream(field, 0, 0,.05);
-
 }
 
 
 void Task61::LIC(){
-	output << "in LIC" << "\n";
+	//output << "in LIC" << "\n";
 
 	ScalarField2 drawnGreyField;
+	ScalarField2 drawnRedField;
+	ScalarField2 drawnGreenField;
+	ScalarField2 drawnBlueField;
 
+	//Initializing scalar fields
 	drawnGreyField.init(makeVector2f(field.boundMin()[0], field.boundMin()[1]), makeVector2f(field.boundMax()[0], field.boundMax()[1]), makeVector2ui(iWidth, iHeight));
+	drawnRedField.init(makeVector2f(field.boundMin()[0], field.boundMin()[1]), makeVector2f(field.boundMax()[0], field.boundMax()[1]), makeVector2ui(iWidth, iHeight));
+	drawnGreenField.init(makeVector2f(field.boundMin()[0], field.boundMin()[1]), makeVector2f(field.boundMax()[0], field.boundMax()[1]), makeVector2ui(iWidth, iHeight));
+	drawnBlueField.init(makeVector2f(field.boundMin()[0], field.boundMin()[1]), makeVector2f(field.boundMax()[0], field.boundMax()[1]), makeVector2ui(iWidth, iHeight));
+	
+	float pixelSizeX= abs(field.boundMax()[0] - field.boundMin()[0])/iWidth;
+	float pixelSizeY= abs(field.boundMax()[1] - field.boundMin()[1])/iHeight;
+
+	//Get the minimum/maximum value in that field
+    min = std::numeric_limits<float32>::max();
+    max = -std::numeric_limits<float32>::max();
+	for(float k=field.boundMin()[1]; k<field.boundMax()[1]; k=k+pixelSizeY)
+    {
+        for(float w=field.boundMin()[0]; w<field.boundMax()[0]; w=w+pixelSizeX)
+        {
+			Vector2f val = field.sample(k,w);
+			float speed = sqrt(pow(val[0],2)+pow(val[1],2));
+            min = speed < min ? speed : min;
+            max = speed > max ? speed : max;
+        }
+    }
 
 	/* Algorithm
 	
@@ -289,16 +315,17 @@ void Task61::LIC(){
 	}
 	*/
 
-	float pixelSizeX=abs(field.boundMax()[0] - field.boundMin()[0])/iWidth;
-	float pixelSizeY= abs(field.boundMax()[1] - field.boundMin()[1])/iHeight;
-
 	//Use LIC
 	if(!FastLIC){
-		float y;
-		int j;
-	
 		viewer->clear();
 
+		//Contrast-related variables
+		accMeans = 0;
+		accStdDev = 0;
+		n = 0;
+
+		float y;
+		int j;
 		//Iterate over the pixels in the vector field in order to draw the surface
 		for(y=field.boundMin()[1], j=0; j<drawnGreyField.dims()[1]; y=y+pixelSizeY, j++){
 			float x;
@@ -306,24 +333,64 @@ void Task61::LIC(){
 			for(x=field.boundMin()[0], i=0; i<drawnGreyField.dims()[0]; x=x+pixelSizeX, i++){
 		
 				float pixelSize= (pixelSizeX+pixelSizeY)/2;
+				float rmean = 0;
+				float gmean = 0;
+				float bmean = 0;
+				float mean = 0;
 
 				//Calling the function responsible to get the sum of -L to L in the coord
 				vector<float> TextSum = SumStream(field, x, y, pixelSize, KernelSize);
 
 				if(bColoredTexture){
 					//for color
-					float rmean = TextSum[2]/TextSum[0];
-					float gmean = TextSum[3]/TextSum[0];
-					float bmean = TextSum[4]/TextSum[0];
+					rmean = TextSum[2]/TextSum[0];
+					gmean = TextSum[3]/TextSum[0];
+					bmean = TextSum[4]/TextSum[0];
 				}
 				else{
-					//for grayscale and black&white
-					float mean = TextSum[1]/TextSum[0];
+					mean = TextSum[1]/TextSum[0];
 					drawnGreyField.setNodeScalar(i,j,mean);
 				}
+
+
+				if(!ScalarColor){
+					//for grayscale and black&white
+					drawnGreyField.setNodeScalar(i,j,mean);
+
+					//Contrast-related variables
+					if (mean > 0.01) {		//Non-black pixels = those > 0.01 (0 is total black) 
+						n++;
+						accMeans += mean;
+						accStdDev += pow(mean, 2);
+						//output << "mean= " << mean << "\n";
+					}
+
+				}
+				else{
+					//Get scalar value of that point
+					//In our case the norm of the vector
+		
+						Vector2f sampleVector = field.sample(x, y);
+						float speed = sqrt(pow(sampleVector[0],2)+pow(sampleVector[1],2));
+						float middleSpeed= speed/2;
+
+						if(speed!=0){
+						//Defining the color of the pixel
+						float dif= abs(max-min);
+						float R	= ((speed-min)/dif)*mean;
+						float G = (1 - R)*mean; 
+						float B = 0;
+						
+						//Drawing the colored pixel on the screen
+						drawnRedField.setNodeScalar(i, j, R);
+						drawnGreenField.setNodeScalar(i, j, G);
+						drawnBlueField.setNodeScalar(i, j, B);
+						}
+				}	
 			}
 		}
 	}
+
 	//Use FastLIC
 	else{
 		viewer->clear();
@@ -398,8 +465,6 @@ void Task61::LIC(){
 				}
 			}
 		}
-
-
 		//Iterate over the cells in order to draw the surface
 		for(y=field.boundMin()[1], j=0; j<drawnGreyField.dims()[1]; y=y+pixelSizeY, j++){
 			float x;
@@ -420,9 +485,23 @@ void Task61::LIC(){
 		delete [] pixelArray;
 	}
 	
-	viewer->setTextureGray(drawnGreyField.getData());
+	//viewer->setTextureGray(drawnGreyField.getData());
+
+
+	//Contrast final calculations
+	oldMean = accMeans / n;
+	oldStdDev = sqrt((accStdDev - n*pow(oldMean,2))/(n-1));
+	
+	//Set the texture
+	if(!ScalarColor){
+		viewer->setTextureGray(drawnGreyField.getData());
+	}else{
+        viewer->setTextureRGB(drawnRedField.getData(), drawnGreenField.getData(), drawnBlueField.getData());
+	}
+
 	viewer->refresh();
 }
+
 
 //Calculate the cell from the point position
 vector<int> Task61::GetCellValues(float posX, float posY, float pixelSizeX, float pixelSizeY){
@@ -643,6 +722,48 @@ vector<float> Task61::SumStream(VectorField2 field, float startX, float startY, 
 	return partSum;
 }
 
+void Task61::EnhanceContrast(){
+	viewer->clear();
+	
+	//Contrast definitions (slide 45, Lecture 07)
+	newStdDev = 0.1;
+	newMean	  = 0.5;	
+	
+	contrastGrayField.init(makeVector2f(field.boundMin()[0], field.boundMin()[1]), makeVector2f(field.boundMax()[0], field.boundMax()[1]), makeVector2ui(iWidth, iHeight));
+
+	//Iterate over the pixels in the vector field in order to redraw the surface
+	float pixelSizeX=abs(field.boundMax()[0] - field.boundMin()[0])/iWidth;
+	float pixelSizeY= abs(field.boundMax()[1] - field.boundMin()[1])/iHeight;
+	
+	float y;
+	int j;
+
+	for(y=field.boundMin()[1], j=0; j<drawnGreyField.dims()[1]; y=y+pixelSizeY, j++){
+		float x;
+		int i;
+		for(x=field.boundMin()[0], i=0; i<drawnGreyField.dims()[0]; x=x+pixelSizeX, i++){
+			if(bColoredTexture){
+				//for color (TODO)
+					/*float rmean = ;
+					float gmean = ;
+					float bmean = ;*/
+				}
+				else{
+					//for grayscale and black&white
+					float oldValue = (float) drawnGreyField.sampleScalar(x,y);
+					float newValue = newMean + (newStdDev / oldStdDev)*(oldValue - oldMean); // slide 44, Lecture 07
+					contrastGrayField.setNodeScalar(i,j,newValue); // draws the output pixel
+					//output << "oldValue= " << oldValue << "; newValue= " << newValue << "\n";
+				}
+		}
+
+	}
+	
+	viewer->setTextureGray(contrastGrayField.getData());
+	viewer->refresh();
+
+}
+
 
 //Calculating position of the stream line
 vector<pStream> Task61::PositionStream(VectorField2 field, float startX, float startY, float pixelSize){
@@ -764,7 +885,7 @@ vector<pStream> Task61::PositionStream(VectorField2 field, float startX, float s
 		if ((x1[0] < field.boundMin()[0])||(x1[0] > field.boundMax()[0])||(x1[1] < field.boundMin()[1])||(x1[1] > field.boundMax()[1])) {
 			outOfBounds = true;
 			//if(printComments)
-			 // output << "Out of bounds! \n";
+			  //output << "Out of bounds! \n";
 		}else if(speed==0){
 			zeroSpeed=true;
 			//output<<"zero speed"<< "\n";
