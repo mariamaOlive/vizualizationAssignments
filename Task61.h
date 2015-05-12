@@ -66,6 +66,9 @@ public:
 	ScalarField2 Blue;
 	VectorField2 field;
 	ScalarField2 drawnGreyField;
+	ScalarField2 drawnRedField;
+	ScalarField2 drawnGreenField;
+	ScalarField2 drawnBlueField;
 	ScalarField2 contrastGrayField;
 
 	//Values fo
