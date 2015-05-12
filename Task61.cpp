@@ -213,9 +213,25 @@ void Task61::DrawTexture()
 
         //Set the texture in the viewer
         viewer->setTextureRGB(Red.getData(), Green.getData(), Blue.getData());
-    }
-    else
-    {
+
+	}else if(!RandomTexture && !bColoredTexture){
+		//It generates grayish image
+
+		Gray.init(makeVector2f(field.boundMin()[0], field.boundMin()[1]), makeVector2f(field.boundMax()[0], field.boundMax()[1]), makeVector2ui(iWidth, iHeight));
+
+        //Set the values at the vertices
+        for(size_t j=0; j<Gray.dims()[1]; j++)
+        {
+            for(size_t i=0; i<Gray.dims()[0]; i++)
+            {
+                Gray.setNodeScalar(i, j, (float)(qGray(image.pixel(i, j))) / 255.0 );
+            }
+        }
+
+        //Set the texture in the viewer
+        viewer->setTextureGray(Gray.getData());
+
+	}else{
         //Create one gray color channel represented as a scalar field
 		float randGray;
 		int randBW=0;
@@ -262,11 +278,15 @@ void Task61::LoadFiles(){
         return;
     }
 
+
+	
 	//vector<pStream> test=PositionStream(field, 0, 0,.05);
 }
 
 
 void Task61::LIC(){
+
+
 	//output << "in LIC" << "\n";
 
 	/* These fields are declared as global in order to be used in Contrast function
@@ -298,7 +318,6 @@ void Task61::LIC(){
             max = speed > max ? speed : max;
         }
     }
-
 	/* Algorithm
 	
 	Loop through all points in vector field (pixels)
@@ -374,38 +393,26 @@ void Task61::LIC(){
 
 				}
 				else{
-					//Get scalar value of that point
-					//In our case the norm of the vector
-		
-						Vector2f sampleVector = field.sample(x, y);
-						float speed = sqrt(pow(sampleVector[0],2)+pow(sampleVector[1],2));
-						float middleSpeed= speed/2;
+					//Necessary to able to apply the contrast later
+					drawnGreyField.setNodeScalar(i,j,mean);
+					//Contrast-related variables
+					if (mean > 0.01) {		//Non-black pixels = those > 0.01 (0 is total black) 
+						n++;
+						accMeans += mean;
+						accStdDev += pow(mean, 2);
+						//output << "mean= " << mean << "\n";
+					}
 
-						if(speed!=0){
-						//Defining the color of the pixel
-						float dif= abs(max-min);
-						float middle= dif/2;
+					//Get the color map and apply intensity of the mean
+					vector<float> rgb=RGBValues(field, x, y, pixelSizeX, pixelSizeY);
+					float R=rgb.at(0)*mean;
+					float G=rgb.at(1)*mean;
+					float B=rgb.at(2)*mean;
 
-						float R=0;
-						float G=0;
-						float B=0;
-
-						if(speed<(min+middle)){
-						//Blue to Green
-							G = ((speed-min)/middle)*mean; 
-							B = (1-G)*mean;
-						
-						}else{
-						//Green to Red
-							R	= ((speed-min-middle)/middle)*mean;
-							G = (1 - R)*mean;
-						}
-
-						//Drawing the colored pixel on the screen
-						drawnRedField.setNodeScalar(i, j, R);
-						drawnGreenField.setNodeScalar(i, j, G);
-						drawnBlueField.setNodeScalar(i, j, B);
-						}
+					//Drawing the colored pixel on the screen
+					drawnRedField.setNodeScalar(i, j, R);
+					drawnGreenField.setNodeScalar(i, j, G);
+					drawnBlueField.setNodeScalar(i, j, B);
 				}	
 			}
 		}
@@ -752,6 +759,10 @@ void Task61::EnhanceContrast(){
 	
 	//New field for contrast
 	contrastGrayField.init(makeVector2f(field.boundMin()[0], field.boundMin()[1]), makeVector2f(field.boundMax()[0], field.boundMax()[1]), makeVector2ui(iWidth, iHeight));
+	contrastRedField.init(makeVector2f(field.boundMin()[0], field.boundMin()[1]), makeVector2f(field.boundMax()[0], field.boundMax()[1]), makeVector2ui(iWidth, iHeight));
+	contrastGreenField.init(makeVector2f(field.boundMin()[0], field.boundMin()[1]), makeVector2f(field.boundMax()[0], field.boundMax()[1]), makeVector2ui(iWidth, iHeight));
+	contrastBlueField.init(makeVector2f(field.boundMin()[0], field.boundMin()[1]), makeVector2f(field.boundMax()[0], field.boundMax()[1]), makeVector2ui(iWidth, iHeight));
+
 
 	//Iterate over the pixels in the vector field in order to redraw the surface
 	float pSizeX= abs(field.boundMax()[0] - field.boundMin()[0])/iWidth;
@@ -771,18 +782,33 @@ void Task61::EnhanceContrast(){
 					float bmean = ;*/
 				}
 			else{
+
 				//for grayscale and black&white
 				float oldValue = (float) drawnGreyField.sampleScalar(x,y);
 				float newValue = newMean + (newStdDev / oldStdDev)*(oldValue - oldMean); // slide 44, Lecture 07
+
+				if(!ScalarColor){
 				contrastGrayField.setNodeScalar(i,j,newValue); // draws the output pixel
 				//output << "oldValue= " << oldValue << "; newValue= " << newValue << "\n";
+				}else{
+
+				vector<float> rgb=RGBValues(field, x, y, pSizeX, pSizeY);
+
+				float R=rgb.at(0)*newValue;
+				float G=rgb.at(1)*newValue;
+				float B=rgb.at(2)*newValue;
+
+				contrastRedField.setNodeScalar(i,j,R);
+				contrastGreenField.setNodeScalar(i,j,G);
+				contrastBlueField.setNodeScalar(i,j,B);
+				}
 			}
 		}
 
 	}
 	
-	if(bColoredTexture){
-		
+	if(bColoredTexture || ScalarColor){
+		viewer->setTextureRGB(contrastRedField.getData(), contrastGreenField.getData(), contrastBlueField.getData());
 	}
 	else{
 		viewer->setTextureGray(contrastGrayField.getData());
@@ -944,6 +970,40 @@ vector<pStream> Task61::PositionStream(VectorField2 field, float startX, float s
 	return positions;
 }
 
+vector<float> Task61::RGBValues(VectorField2 field,float x, float y, float pixelSizeX, float pixelSizeY){
+
+
+	Vector2f sampleVector = field.sample(x, y);
+	float speed = sqrt(pow(sampleVector[0],2)+pow(sampleVector[1],2));
+	float middleSpeed= speed/2;
+
+	float R=0;
+	float G=0;
+	float B=0;
+
+	if(speed!=0){
+		//Defining the color of the pixel
+		float dif= abs(max-min);
+		float middle= dif/2;
+
+		if(speed<(min+middle)){
+		//Blue to Green
+			G = ((speed-min)/middle); 
+			B = (1-G);
+						
+		}else{
+		//Green to Red
+			R	= ((speed-min-middle)/middle);
+			G = (1 - R);
+		}
+	}
+	vector<float> returnVector;
+	returnVector.push_back(R);
+	returnVector.push_back(G);
+	returnVector.push_back(B);
+
+	return returnVector;
+}
 
 
 

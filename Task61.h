@@ -52,6 +52,7 @@ public:
 
 	vector<int> Task61::GetCellValues(float posX, float posY, float pixelSizeX, float pixelSizeY);
 
+	vector<float> Task61::RGBValues(VectorField2 field,float x, float y, float pixelSizeX, float pixelSizeY);
 
 //Attributes
 public:
@@ -70,6 +71,9 @@ public:
 	ScalarField2 drawnGreenField;
 	ScalarField2 drawnBlueField;
 	ScalarField2 contrastGrayField;
+	ScalarField2 contrastRedField;
+	ScalarField2 contrastGreenField;
+	ScalarField2 contrastBlueField;
 
 	//Values fo
 
