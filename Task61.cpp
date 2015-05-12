@@ -176,8 +176,8 @@ void Task61::DrawTexture()
 		//Load the texture using Qt
 		
 		//Get its (original) dimensions. Used as bounds later.
-		fWidth = (float)image.width();
-		fHeight = (float)image.height();
+		//fWidth = (float)image.width();
+		//fHeight = (float)image.height();
 
 		//Resize to power-of-two and mirror.
 		image = image.mirrored().scaled(NextPOT(image.width()), NextPOT(image.height()));
@@ -196,9 +196,9 @@ void Task61::DrawTexture()
     {
         //Create three color channels for the texture
         //Each of them is represented using a scalar field
-        Red.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
-        Green.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
-        Blue.init(makeVector2f(-fWidth, -fHeight), makeVector2f(fWidth, fHeight), makeVector2ui(iWidth, iHeight));
+        Red.init(makeVector2f(field.boundMin()[0], field.boundMin()[1]), makeVector2f(field.boundMax()[0], field.boundMax()[1]), makeVector2ui(iWidth, iHeight));
+        Green.init(makeVector2f(field.boundMin()[0], field.boundMin()[1]), makeVector2f(field.boundMax()[0], field.boundMax()[1]), makeVector2ui(iWidth, iHeight));
+        Blue.init(makeVector2f(field.boundMin()[0], field.boundMin()[1]), makeVector2f(field.boundMax()[0], field.boundMax()[1]), makeVector2ui(iWidth, iHeight));
 
         //Fill the scalar fields
         for(size_t j=0; j<Red.dims()[1]; j++)
@@ -346,6 +346,11 @@ void Task61::LIC(){
 					rmean = TextSum[2]/TextSum[0];
 					gmean = TextSum[3]/TextSum[0];
 					bmean = TextSum[4]/TextSum[0];
+
+					//Drawing the colored pixel on the screen
+					drawnRedField.setNodeScalar(i, j, rmean);
+					drawnGreenField.setNodeScalar(i, j, gmean);
+					drawnBlueField.setNodeScalar(i, j, bmean);
 				}
 				else{
 					mean = TextSum[1]/TextSum[0];
@@ -377,10 +382,23 @@ void Task61::LIC(){
 						if(speed!=0){
 						//Defining the color of the pixel
 						float dif= abs(max-min);
-						float R	= ((speed-min)/dif)*mean;
-						float G = (1 - R)*mean; 
-						float B = 0;
+						float middle= dif/2;
+
+						float R=0;
+						float G=0;
+						float B=0;
+
+						if(speed<(min+middle)){
+						//Blue to Green
+							G = ((speed-min)/middle)*mean; 
+							B = (1-G)*mean;
 						
+						}else{
+						//Green to Red
+							R	= ((speed-min-middle)/middle)*mean;
+							G = (1 - R)*mean;
+						}
+
 						//Drawing the colored pixel on the screen
 						drawnRedField.setNodeScalar(i, j, R);
 						drawnGreenField.setNodeScalar(i, j, G);
@@ -493,7 +511,7 @@ void Task61::LIC(){
 	oldStdDev = sqrt((accStdDev - n*pow(oldMean,2))/(n-1));
 	
 	//Set the texture
-	if(!ScalarColor){
+	if(!ScalarColor && !bColoredTexture){
 		viewer->setTextureGray(drawnGreyField.getData());
 	}else{
         viewer->setTextureRGB(drawnRedField.getData(), drawnGreenField.getData(), drawnBlueField.getData());

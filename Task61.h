@@ -68,7 +68,8 @@ public:
 	ScalarField2 drawnGreyField;
 	ScalarField2 contrastGrayField;
 
-	//Values for LIC
+	//Values fo
+
 	int SampleX;
 	int SampleY;
 	float KernelSize;
