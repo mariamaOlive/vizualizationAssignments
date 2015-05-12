@@ -58,15 +58,15 @@ Task61::Task61()
 {
     viewer = NULL;
 
-    VectorfieldFilename = "Sink.am";
+    VectorfieldFilename = "Cylinderclose2CT10.am";
 	isLoaded = false;
 
     ArrowScale = 0.1;
     ImageFilename = "";
     bColoredTexture = false;
 
-	SampleX = 64;
-	SampleY = 64;
+	SampleX = 4;
+	SampleY = 8;
 	KernelSize = 0.1;
 	Seed = 1;
 
@@ -466,6 +466,9 @@ void Task61::LIC(){
 			for(x=field.boundMin()[0], i=0;  i<arX; x=x+pixelSizeX, i++){
 				//output << "in x \n";
 				//output << "j:" << j << "i: " << i << " nvis:" << pixelArray[j][i].nVis << "\n";
+				/*output << "\n";
+				output << "j " << j << ", i " << i << "\n";
+				output << "y " << y - field.boundMin()[1] << ", x " << x - field.boundMin()[0]<< "\n";*/
 				if(pixelArray[j][i].nVis == 0){
 
 					//get the streamline data
@@ -504,9 +507,9 @@ void Task61::LIC(){
 						pixelArray[cellVec[1]][cellVec[0]].nVis++;
 					}			
 				}
-			/*	output << "\n";
-				output << "kol " << j << ", rad " << i << "\n";
-				for(int m=0; m < arY; m++){
+				//output << "\n";
+				//output << "kol " << j << ", rad " << i << "\n";
+			/*	for(int m=0; m < arY; m++){
 					for(int n=0; n < arX; n++){
 						output << pixelArray[m][n].nVis << "   ;   ";
 					}
@@ -574,17 +577,18 @@ vector<int> Task61::GetCellValues(float posX, float posY, float maxX, float maxY
 	float tx = posX-field.boundMin()[0];
 	float ty = posY-field.boundMin()[1];
 
-	int xPosGrid = tx / maxX;
-	int yPosGrid = ty / maxY;
+	int xPosGrid = (tx / maxX) + 0.000001;			//hotfix for int converting
+	int yPosGrid = (ty / maxY) + 0.000001;
 
 	if(!(xPosGrid < celldimX)){
-		/*output << "\n x to large \n";
+	/*	output << "\n x to large \n";
 		output << "tx : " << tx;
 		output << "maxY" << maxY;*/
 		xPosGrid = xPosGrid -1;
 	}
 
 	if(!(yPosGrid < celldimY)){
+		//output << "\n y to large \n";
 		yPosGrid = yPosGrid -1;
 	}
 
