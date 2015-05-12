@@ -52,6 +52,7 @@ public:
 
 	vector<int> Task61::GetCellValues(float posX, float posY, float pixelSizeX, float pixelSizeY, int celldimX, int celldimY);
 
+	vector<float> Task61::RGBValues(VectorField2 field,float x, float y, float pixelSizeX, float pixelSizeY);
 
 //Attributes
 public:
@@ -66,9 +67,16 @@ public:
 	ScalarField2 Blue;
 	VectorField2 field;
 	ScalarField2 drawnGreyField;
+	ScalarField2 drawnRedField;
+	ScalarField2 drawnGreenField;
+	ScalarField2 drawnBlueField;
 	ScalarField2 contrastGrayField;
+	ScalarField2 contrastRedField;
+	ScalarField2 contrastGreenField;
+	ScalarField2 contrastBlueField;
 
-	//Values for LIC
+	//Values fo
+
 	int SampleX;
 	int SampleY;
 	float KernelSize;
