@@ -430,6 +430,8 @@ void Task61::LIC(){
 		int arX = drawnGreyField.dims()[0];
 		int arY = drawnGreyField.dims()[1];
 
+		//output << "arX: " << arX << " , arY: " << arY <<"\n";
+
 		//Array of the cells
 		//Cell pixelArray[ff][rr];
 		Cell **pixelArray;
@@ -457,10 +459,12 @@ void Task61::LIC(){
 
 		//Iterate over the pixels in the vector field to store the data in the cells
 		for(y=field.boundMin()[1], j=0; j<arY; y=y+pixelSizeY, j++){
+			//output << "in y \n";
 			float x;
 			int i;
 
 			for(x=field.boundMin()[0], i=0;  i<arX; x=x+pixelSizeX, i++){
+				//output << "in x \n";
 				//output << "j:" << j << "i: " << i << " nvis:" << pixelArray[j][i].nVis << "\n";
 				if(pixelArray[j][i].nVis == 0){
 
@@ -500,7 +504,7 @@ void Task61::LIC(){
 						pixelArray[cellVec[1]][cellVec[0]].nVis++;
 					}			
 				}
-		/*		output << "\n";
+			/*	output << "\n";
 				output << "kol " << j << ", rad " << i << "\n";
 				for(int m=0; m < arY; m++){
 					for(int n=0; n < arX; n++){
@@ -513,15 +517,16 @@ void Task61::LIC(){
 			//output << "\n";
 		}
 
+		//output << "before draw \n";
+
 		//Iterate over the cells in order to draw the surface
-		for(y=field.boundMin()[1], j=0; j<arY; y=y+pixelSizeY, j++){
-			float x;
+		for(j=0; j<arY; j++){
 			int i;
-			for(x=field.boundMin()[0], i=0; i<arX; x=x+pixelSizeX, i++){
+			for(i=0; i<arX; i++){
 				//Draw
-				float finalMean = pixelArray[i][j].val;
-				if(pixelArray[i][j].nVis != 0){
-					finalMean = pixelArray[i][j].val/pixelArray[i][j].nVis;
+				float finalMean = pixelArray[j][i].val;
+				if(pixelArray[j][i].nVis != 0){
+					finalMean = pixelArray[j][i].val/pixelArray[j][i].nVis;
 				}
 				else{
 					output << "not been visited:  x: " << i << " , y: " << j << "\n";
@@ -539,7 +544,7 @@ void Task61::LIC(){
 		}
 
 		// De-Allocate memory to prevent memory leak
-		for (int i = 0; i < arX; ++i)
+		for (int i = 0; i < arY; ++i)
 			delete [] pixelArray[i];
 		delete [] pixelArray;
 	}
