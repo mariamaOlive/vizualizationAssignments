@@ -269,10 +269,12 @@ void Task61::LoadFiles(){
 void Task61::LIC(){
 	//output << "in LIC" << "\n";
 
+	/* These fields are declared as global in order to be used in Contrast function
 	ScalarField2 drawnGreyField;
 	ScalarField2 drawnRedField;
 	ScalarField2 drawnGreenField;
 	ScalarField2 drawnBlueField;
+	*/
 
 	//Initializing scalar fields
 	drawnGreyField.init(makeVector2f(field.boundMin()[0], field.boundMin()[1]), makeVector2f(field.boundMax()[0], field.boundMax()[1]), makeVector2ui(iWidth, iHeight));
@@ -430,6 +432,7 @@ void Task61::LIC(){
 			int i;
 			for(x=field.boundMin()[0], i=0; i<arX && pixelArray[i][j].nVis == 0; x=x+pixelSizeX, i++){
 				//output << "in inner Fast: x= " << i << ", y=" << j << ", numVis: " << pixelArray[i][j].nVis << "\n";
+				
 				//get the streamline data
 				vector<pStream> data = PositionStream(field, x, y, pixelSize);
 				
@@ -729,37 +732,44 @@ void Task61::EnhanceContrast(){
 	newStdDev = 0.1;
 	newMean	  = 0.5;	
 	
+	//New field for contrast
 	contrastGrayField.init(makeVector2f(field.boundMin()[0], field.boundMin()[1]), makeVector2f(field.boundMax()[0], field.boundMax()[1]), makeVector2ui(iWidth, iHeight));
 
 	//Iterate over the pixels in the vector field in order to redraw the surface
-	float pixelSizeX=abs(field.boundMax()[0] - field.boundMin()[0])/iWidth;
-	float pixelSizeY= abs(field.boundMax()[1] - field.boundMin()[1])/iHeight;
+	float pSizeX= abs(field.boundMax()[0] - field.boundMin()[0])/iWidth;
+	float pSizeY= abs(field.boundMax()[1] - field.boundMin()[1])/iHeight;
 	
 	float y;
 	int j;
 
-	for(y=field.boundMin()[1], j=0; j<drawnGreyField.dims()[1]; y=y+pixelSizeY, j++){
+	for(y=field.boundMin()[1], j=0; j<drawnGreyField.dims()[1]; y=y+pSizeY, j++){
 		float x;
 		int i;
-		for(x=field.boundMin()[0], i=0; i<drawnGreyField.dims()[0]; x=x+pixelSizeX, i++){
+		for(x=field.boundMin()[0], i=0; i<drawnGreyField.dims()[0]; x=x+pSizeX, i++){
 			if(bColoredTexture){
 				//for color (TODO)
 					/*float rmean = ;
 					float gmean = ;
 					float bmean = ;*/
 				}
-				else{
-					//for grayscale and black&white
-					float oldValue = (float) drawnGreyField.sampleScalar(x,y);
-					float newValue = newMean + (newStdDev / oldStdDev)*(oldValue - oldMean); // slide 44, Lecture 07
-					contrastGrayField.setNodeScalar(i,j,newValue); // draws the output pixel
-					//output << "oldValue= " << oldValue << "; newValue= " << newValue << "\n";
-				}
+			else{
+				//for grayscale and black&white
+				float oldValue = (float) drawnGreyField.sampleScalar(x,y);
+				float newValue = newMean + (newStdDev / oldStdDev)*(oldValue - oldMean); // slide 44, Lecture 07
+				contrastGrayField.setNodeScalar(i,j,newValue); // draws the output pixel
+				//output << "oldValue= " << oldValue << "; newValue= " << newValue << "\n";
+			}
 		}
 
 	}
 	
-	viewer->setTextureGray(contrastGrayField.getData());
+	if(bColoredTexture){
+		
+	}
+	else{
+		viewer->setTextureGray(contrastGrayField.getData());
+	}
+
 	viewer->refresh();
 
 }
