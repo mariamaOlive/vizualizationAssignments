@@ -22,6 +22,7 @@ class pStream{
 	public:
 	float x;
 	float y;
+	float val;
 };
 
 
@@ -47,6 +48,8 @@ public:
 	vector<float> RungeKuttaStreamlines(VectorField2 field, float startX, float startY,float stepSize, float length, bool backwards);
 	vector<pStream> RungeKuttaStreamlines(VectorField2 field, float startX, float startY,float stepSize, bool backwards);
 	vector<pStream> PositionStream(VectorField2 field, float startX, float startY, float pixelSize);
+
+	vector<int> Task61::GetCellValues(float posX, float posY, float pixelSizeX, float pixelSizeY);
 
 
 //Attributes

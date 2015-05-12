@@ -56,7 +56,7 @@ Task61::Task61()
 {
     viewer = NULL;
 
-    VectorfieldFilename = "boussinesq2CT522.am";
+    VectorfieldFilename = "Cylinderclose2CT10.am";
 
     ArrowScale = 0.1;
     ImageFilename = "";
@@ -69,7 +69,7 @@ Task61::Task61()
 	minRes = 8;
 
 	RandomTexture = true;
-	FastLIC = false;
+	FastLIC = true;
 	AutoContrast = false;
 	BWTexture = false;
 
@@ -80,6 +80,16 @@ Task61::Task61()
 }
 
 Task61::~Task61() {}
+
+//Class resposible for representing the values of the stream line points
+class Cell{
+	public:
+	float val;
+	float rval;
+	float gval;
+	float bval;
+	int nVis;
+};
 
 void Task61::DrawVectorField()
 {
@@ -249,7 +259,7 @@ void Task61::LoadFiles(){
         return;
     }
 
-	vector<pStream> test=PositionStream(field, 0, 0,.05);
+	//vector<pStream> test=PositionStream(field, 0, 0,.05);
 
 }
 
@@ -260,7 +270,6 @@ void Task61::LIC(){
 	ScalarField2 drawnGreyField;
 
 	drawnGreyField.init(makeVector2f(field.boundMin()[0], field.boundMin()[1]), makeVector2f(field.boundMax()[0], field.boundMax()[1]), makeVector2ui(iWidth, iHeight));
-
 
 	/* Algorithm
 	
@@ -279,43 +288,27 @@ void Task61::LIC(){
 		Set pixel intensity with result from LIC
 	}
 	*/
-	/*
-		//for each cell/pixel calculate the value for that cell/pixel
-		vector<float> TextSum = PositionStream(field, float startX, float startY, float pixelSize, float L);
-		//the Box kernel: result is the arithmetic mean of all collected pixel values.
-		if(TextSum != 0){
-			if(bColoredTexture){
-				//for color
-				float rmean = TextSum[2]/TextSum[0];
-				float gmean = TextSum[3]/TextSum[0];
-				float bmean = TextSum[4]/TextSum[0];
-			}
-			else{
-				//for grayscale and black&white
-				float mean = TextSum[1]/TextSum[0];
-			}
-		}
-	
-	*/
 
 	float pixelSizeX=abs(field.boundMax()[0] - field.boundMin()[0])/iWidth;
 	float pixelSizeY= abs(field.boundMax()[1] - field.boundMin()[1])/iHeight;
 
-	float y;
-	int j;
+	//Use LIC
+	if(!FastLIC){
+		float y;
+		int j;
 	
-	viewer->clear();
+		viewer->clear();
 
-	//Iterate over the pixels in the vector field in order to draw the surface
-	for(y=field.boundMin()[1], j=0; j<drawnGreyField.dims()[1]; y=y+pixelSizeY, j++){
-		float x;
-		int i;
-		for(x=field.boundMin()[0], i=0; i<drawnGreyField.dims()[0]; x=x+pixelSizeX, i++){
+		//Iterate over the pixels in the vector field in order to draw the surface
+		for(y=field.boundMin()[1], j=0; j<drawnGreyField.dims()[1]; y=y+pixelSizeY, j++){
+			float x;
+			int i;
+			for(x=field.boundMin()[0], i=0; i<drawnGreyField.dims()[0]; x=x+pixelSizeX, i++){
 		
-			float pixelSize= (pixelSizeX+pixelSizeY)/2;
+				float pixelSize= (pixelSizeX+pixelSizeY)/2;
 
-			//Calling the function responsible to get the sum of -L to L in the coord
-			vector<float> TextSum = SumStream(field, x, y, pixelSize, KernelSize);
+				//Calling the function responsible to get the sum of -L to L in the coord
+				vector<float> TextSum = SumStream(field, x, y, pixelSize, KernelSize);
 
 				if(bColoredTexture){
 					//for color
@@ -328,10 +321,123 @@ void Task61::LIC(){
 					float mean = TextSum[1]/TextSum[0];
 					drawnGreyField.setNodeScalar(i,j,mean);
 				}
+			}
 		}
 	}
+	//Use FastLIC
+	else{
+		viewer->clear();
+		float y;
+		int j;
+		float pixelSize= (pixelSizeX+pixelSizeY)/2;
+
+		int arX = drawnGreyField.dims()[0];
+		int arY = drawnGreyField.dims()[1];
+
+		//Array of the cells
+		//Cell pixelArray[ff][rr];
+		Cell **pixelArray;
+
+		// Allocate memory
+		pixelArray = new Cell*[arX];
+			for (int i = 0; i < arX; ++i)
+				pixelArray[i] = new Cell[arY];
+
+		//Assigning values for each cell (otherwise undefinied)
+		for(int cx=0; cx < arX; cx++){
+			for(int cy=0; cy < arY; cy++){
+				pixelArray[cx][cy].bval = 0;
+				pixelArray[cx][cy].gval = 0;
+				pixelArray[cx][cy].rval = 0;
+				pixelArray[cx][cy].nVis = 0;
+				pixelArray[cx][cy].val = 0;
+			}
+		}
+
+		float pixelSizeX = (field.boundMax()[0] - field.boundMin()[0]) /arX;
+		float pixelSizeY = (field.boundMax()[1] - field.boundMin()[1]) /arY;
+
+		//Iterate over the pixels in the vector field to store the data in the cells
+		for(y=field.boundMin()[1], j=0; j<drawnGreyField.dims()[1]; y=y+pixelSizeY, j++){
+			float x;
+			int i;
+			for(x=field.boundMin()[0], i=0; i<drawnGreyField.dims()[0] && pixelArray[i][j].nVis == 0; x=x+pixelSizeX, i++){
+				//output << "in inner Fast: x= " << i << ", y=" << j << ", numVis: " << pixelArray[i][j].nVis << "\n";
+				//get the streamline data
+				vector<pStream> data = PositionStream(field, x, y, pixelSize);
+				
+				//store data
+				for(int k = 0; k < data.size(); k++){
+
+					//calculating mean for the point
+					float mean = 0;
+					float npoints = 0;
+					float forwKernelSize = 0;
+					for(int forw=k; forwKernelSize < KernelSize && forw < data.size(); forw++){
+						mean += data[forw].val;
+						npoints++;
+						forwKernelSize += pixelSize;
+					}
+					float backwKernelSize = 0;
+					for(int backw=k; backw > 0 && backwKernelSize < KernelSize; backw--){
+						mean += data[backw].val;
+						npoints++;
+						backwKernelSize += pixelSize;
+					}										
+					if(npoints!= 0){
+						mean = mean/npoints;
+					}
+
+					//get the cell that the point belongs to
+					vector<int> cellVec = GetCellValues(data[k].x, data[k].y, pixelSizeX, pixelSizeY);
+
+					//adding values to the cell, adding to number of times visited
+					pixelArray[cellVec[0]][cellVec[1]].val+= mean;
+					pixelArray[cellVec[0]][cellVec[1]].nVis++;
+					
+				}
+			}
+		}
+
+
+		//Iterate over the cells in order to draw the surface
+		for(y=field.boundMin()[1], j=0; j<drawnGreyField.dims()[1]; y=y+pixelSizeY, j++){
+			float x;
+			int i;
+			for(x=field.boundMin()[0], i=0; i<drawnGreyField.dims()[0]; x=x+pixelSizeX, i++){
+				//Draw
+				float mean = 0;
+				if(pixelArray[i][j].nVis != 0){
+					mean = pixelArray[i][j].val/pixelArray[i][j].nVis;
+				}
+				drawnGreyField.setNodeScalar(i,j,mean);
+			}
+		}
+
+		// De-Allocate memory to prevent memory leak
+		for (int i = 0; i < arX; ++i)
+			delete [] pixelArray[i];
+		delete [] pixelArray;
+	}
+	
 	viewer->setTextureGray(drawnGreyField.getData());
 	viewer->refresh();
+}
+
+//Calculate the cell from the point position
+vector<int> Task61::GetCellValues(float posX, float posY, float pixelSizeX, float pixelSizeY){
+	vector<int> cellvector;
+
+	float tx = posX-field.boundMin()[0];
+	float ty = posY-field.boundMin()[1];
+
+	int xPosGrid = tx / pixelSizeX;
+	int yPosGrid = ty / pixelSizeY;
+
+	cellvector.push_back(xPosGrid);
+	cellvector.push_back(yPosGrid);
+
+	return cellvector;
 }
 
 
@@ -558,9 +664,10 @@ vector<pStream> Task61::PositionStream(VectorField2 field, float startX, float s
 	pStream p;
 	p.x=startX;
 	p.y=startY;
+	p.val = Gray.sampleScalar(startX,startY);
 	finalVector.push_back(p);
 
-	//Adding backward
+	//Adding forward
 	finalVector.insert(finalVector.end(), forward.begin(), forward.end());
 
 	return finalVector;
@@ -657,10 +764,10 @@ vector<pStream> Task61::PositionStream(VectorField2 field, float startX, float s
 		if ((x1[0] < field.boundMin()[0])||(x1[0] > field.boundMax()[0])||(x1[1] < field.boundMin()[1])||(x1[1] > field.boundMax()[1])) {
 			outOfBounds = true;
 			//if(printComments)
-			  output << "Out of bounds! \n";
+			 // output << "Out of bounds! \n";
 		}else if(speed==0){
 			zeroSpeed=true;
-			output<<"zero speed"<< "\n";
+			//output<<"zero speed"<< "\n";
 		}
 		//else if (speed < MinSpeed) {
 		//	tooSlow = true;
@@ -672,7 +779,7 @@ vector<pStream> Task61::PositionStream(VectorField2 field, float startX, float s
 			pStream point;
 			point.x=x1[0];
 			point.y=x1[1];
-			
+			point.val = Gray.sampleScalar(x1[0],x1[1]);			
 			 
 			if(!backwards){
 				//forward
