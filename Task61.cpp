@@ -59,7 +59,7 @@ Task61::Task61()
 {
     viewer = NULL;
 
-    VectorfieldFilename = "Cylinderclose2CT10.am";
+    VectorfieldFilename = "Sink.am";
 
     ArrowScale = 0.1;
     ImageFilename = "";
@@ -75,7 +75,7 @@ Task61::Task61()
 	FastLIC = true;
 	AutoContrast = false;
 	BWTexture = false;
-	ScalarColor=true;
+	ScalarColor=false;
 
 	normal = true;
 	printComments = false;
@@ -421,14 +421,14 @@ void Task61::LIC(){
 			}
 		}
 
-		float pixelSizeX = (field.boundMax()[0] - field.boundMin()[0]) /arX;
-		float pixelSizeY = (field.boundMax()[1] - field.boundMin()[1]) /arY;
+		float cellSizeX = (field.boundMax()[0] - field.boundMin()[0]) /arX;
+		float cellSizeY = (field.boundMax()[1] - field.boundMin()[1]) /arY;
 
 		//Iterate over the pixels in the vector field to store the data in the cells
-		for(y=field.boundMin()[1], j=0; j<drawnGreyField.dims()[1]; y=y+pixelSizeY, j++){
+		for(y=field.boundMin()[1], j=0; j<arY; y=y+pixelSizeY, j++){
 			float x;
 			int i;
-			for(x=field.boundMin()[0], i=0; i<drawnGreyField.dims()[0] && pixelArray[i][j].nVis == 0; x=x+pixelSizeX, i++){
+			for(x=field.boundMin()[0], i=0; i<arX && pixelArray[i][j].nVis == 0; x=x+pixelSizeX, i++){
 				//output << "in inner Fast: x= " << i << ", y=" << j << ", numVis: " << pixelArray[i][j].nVis << "\n";
 				//get the streamline data
 				vector<pStream> data = PositionStream(field, x, y, pixelSize);
@@ -456,7 +456,7 @@ void Task61::LIC(){
 					}
 
 					//get the cell that the point belongs to
-					vector<int> cellVec = GetCellValues(data[k].x, data[k].y, pixelSizeX, pixelSizeY);
+					vector<int> cellVec = GetCellValues(data[k].x, data[k].y, cellSizeX, cellSizeY);
 
 					//adding values to the cell, adding to number of times visited
 					pixelArray[cellVec[0]][cellVec[1]].val+= mean;
@@ -471,11 +471,11 @@ void Task61::LIC(){
 			int i;
 			for(x=field.boundMin()[0], i=0; i<drawnGreyField.dims()[0]; x=x+pixelSizeX, i++){
 				//Draw
-				float mean = 0;
+				float finalMean = 0;
 				if(pixelArray[i][j].nVis != 0){
-					mean = pixelArray[i][j].val/pixelArray[i][j].nVis;
+					finalMean = pixelArray[i][j].val/pixelArray[i][j].nVis;
 				}
-				drawnGreyField.setNodeScalar(i,j,mean);
+				drawnGreyField.setNodeScalar(i,j,finalMean);
 			}
 		}
 
