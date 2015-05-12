@@ -59,6 +59,7 @@ public:
 
     ///File name of the vector field
     string VectorfieldFilename;
+	bool isLoaded;
 
 	//Data
 	ScalarField2 Gray;
@@ -76,7 +77,6 @@ public:
 	ScalarField2 contrastBlueField;
 
 	//Values fo
-
 	int SampleX;
 	int SampleY;
 	float KernelSize;

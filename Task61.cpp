@@ -19,7 +19,7 @@ IMPLEMENT_GEOX_CLASS( Task61, 0)
 {
     BEGIN_CLASS_INIT( Task61 );
 
-	ADD_NOARGS_METHOD(Task61::LoadFiles)
+	//ADD_NOARGS_METHOD(Task61::LoadFiles)
 
     ADD_SEPARATOR("Vectorfield")
     ADD_FLOAT32_PROP(ArrowScale, 0)
@@ -35,7 +35,6 @@ IMPLEMENT_GEOX_CLASS( Task61, 0)
 	ADD_INT32_PROP(SampleX, 0)
 	ADD_INT32_PROP(SampleY, 0)
 	ADD_FLOAT32_PROP(KernelSize, 0)
-	ADD_INT32_PROP(minRes, 0)
 	ADD_INT32_PROP(Seed, 0)
 	ADD_BOOLEAN_PROP(RandomTexture, 0)
 	ADD_BOOLEAN_PROP(FastLIC, 0)
@@ -60,6 +59,7 @@ Task61::Task61()
     viewer = NULL;
 
     VectorfieldFilename = "Sink.am";
+	isLoaded = false;
 
     ArrowScale = 0.1;
     ImageFilename = "";
@@ -69,7 +69,6 @@ Task61::Task61()
 	SampleY = 64;
 	KernelSize = 0.1;
 	Seed = 1;
-	minRes = 8;
 
 	RandomTexture = true;
 	FastLIC = true;
@@ -105,10 +104,12 @@ void Task61::DrawVectorField()
     //    return;
     //}
 
+	LoadFiles();
+	
     //Draw vector directions (constant length)
-    for(float32 x=field.boundMin()[0]; x<=field.boundMax()[0]; x+=0.02)
+    for(float32 x=field.boundMin()[0]; x<=field.boundMax()[0]; x+=0.1)
     {
-        for(float32 y=field.boundMin()[1]; y<=field.boundMax()[1]; y+=0.02)
+        for(float32 y=field.boundMin()[1]; y<=field.boundMax()[1]; y+=0.1)
         {
             Vector2f vec = field.sample(x,y);
             vec.normalize();
@@ -140,7 +141,9 @@ namespace
 
 void Task61::DrawTexture()
 {
-    viewer->clear();
+	LoadFiles();
+
+	viewer->clear();
 
 	////Load Vectorfield
  //   VectorField2 field;
@@ -156,7 +159,10 @@ void Task61::DrawTexture()
 	float fWidth = abs(field.boundMax()[0] - field.boundMin()[0]);
 	float fHeight = abs(field.boundMax()[1] - field.boundMin()[1]);
 
-	//Adjustments for the resolution
+	iWidth = SampleX;
+	iHeight= SampleY;
+	
+/*	//Adjustments for the resolution
 	if(fWidth > fHeight) {
 		int factor = ceil(fWidth/fHeight);
 		iHeight = minRes;
@@ -167,11 +173,7 @@ void Task61::DrawTexture()
 		iWidth   = minRes;
 		iHeight  = (NextPOT(minRes*factor)>=1024) ? 1024 : NextPOT(minRes*factor);
 	}
-	
-	//Integer dimensions for RandomTexture (desired resolution)
-	//int iWidth = 256;
-	//int iHeight = 512;
-
+*/	
 	if(!RandomTexture) {
 		//Load the texture using Qt
 		
@@ -278,7 +280,7 @@ void Task61::LoadFiles(){
         return;
     }
 
-
+	isLoaded = true;
 	
 	//vector<pStream> test=PositionStream(field, 0, 0,.05);
 }
@@ -525,6 +527,14 @@ void Task61::LIC(){
 					output << "not been visited:  x: " << i << " , y: " << j << "\n";
 				}
 				drawnGreyField.setNodeScalar(i,j,finalMean);
+
+				//Contrast-related variables
+				if (finalMean > 0.01) {		//Non-black pixels = those > 0.01 (0 is total black) 
+					n++;
+					accMeans += finalMean;
+					accStdDev += pow(finalMean, 2);
+					//output << "mean= " << mean << "\n";
+				}
 			}
 		}
 
