@@ -406,20 +406,22 @@ void Task61::LIC(){
 		Cell **pixelArray;
 
 		// Allocate memory
-		pixelArray = new Cell*[arX];
-			for (int i = 0; i < arX; ++i)
-				pixelArray[i] = new Cell[arY];
+		pixelArray = new Cell*[arY];
+			for (int i = 0; i < arY; ++i)
+				pixelArray[i] = new Cell[arX];
 
 		//Assigning values for each cell (otherwise undefinied)
-		for(int cx=0; cx < arX; cx++){
-			for(int cy=0; cy < arY; cy++){
-				pixelArray[cx][cy].bval = 0;
-				pixelArray[cx][cy].gval = 0;
-				pixelArray[cx][cy].rval = 0;
-				pixelArray[cx][cy].nVis = 0;
-				pixelArray[cx][cy].val = 0;
+		for(int cy=0; cy < arY; cy++){
+			for(int cx=0; cx < arX; cx++){
+				pixelArray[cy][cx].bval = 0;
+				pixelArray[cy][cx].gval = 0;
+				pixelArray[cy][cx].rval = 0;
+				pixelArray[cy][cx].nVis = 0;
+				pixelArray[cy][cx].val = 0;
 			}
 		}
+
+		//output << "arX:" << arX << ", arY: " << arY  <<"\n";
 
 		float cellSizeX = (field.boundMax()[0] - field.boundMin()[0]) /arX;
 		float cellSizeY = (field.boundMax()[1] - field.boundMin()[1]) /arY;
@@ -428,52 +430,72 @@ void Task61::LIC(){
 		for(y=field.boundMin()[1], j=0; j<arY; y=y+pixelSizeY, j++){
 			float x;
 			int i;
-			for(x=field.boundMin()[0], i=0; i<arX && pixelArray[i][j].nVis == 0; x=x+pixelSizeX, i++){
-				//output << "in inner Fast: x= " << i << ", y=" << j << ", numVis: " << pixelArray[i][j].nVis << "\n";
-				//get the streamline data
-				vector<pStream> data = PositionStream(field, x, y, pixelSize);
+
+			for(x=field.boundMin()[0], i=0;  i<arX; x=x+pixelSizeX, i++){
+				//output << "j:" << j << "i: " << i << " nvis:" << pixelArray[j][i].nVis << "\n";
+				if(pixelArray[j][i].nVis == 0){
+
+					//get the streamline data
+					vector<pStream> data = PositionStream(field, x, y, pixelSize);
 				
-				//store data
-				for(int k = 0; k < data.size(); k++){
+					//store data
+					for(int k = 0; k < data.size(); k++){
 
-					//calculating mean for the point
-					float mean = 0;
-					float npoints = 0;
-					float forwKernelSize = 0;
-					for(int forw=k; forwKernelSize < KernelSize && forw < data.size(); forw++){
-						mean += data[forw].val;
-						npoints++;
-						forwKernelSize += pixelSize;
-					}
-					float backwKernelSize = 0;
-					for(int backw=k; backw > 0 && backwKernelSize < KernelSize; backw--){
-						mean += data[backw].val;
-						npoints++;
-						backwKernelSize += pixelSize;
-					}										
-					if(npoints!= 0){
-						mean = mean/npoints;
-					}
+						//calculating mean for the point
+						float mean = 0;
+						float npoints = 0;
+						float forwKernelSize = 0;
+						for(int forw=k; forwKernelSize < KernelSize && forw < data.size(); forw++){
+							mean += data[forw].val;
+							npoints++;
+							forwKernelSize += pixelSize;
+						}
+						float backwKernelSize = 0;
+						for(int backw=k-1; backw > 0 && backwKernelSize < KernelSize; backw--){
+							mean += data[backw].val;
+							npoints++;
+							backwKernelSize += pixelSize;
+						}									
+						if(npoints!= 0){
+							mean = mean/npoints;
+						}
+						else{
+							output << "npoints0" << "\n";
+						}
 
-					//get the cell that the point belongs to
-					vector<int> cellVec = GetCellValues(data[k].x, data[k].y, cellSizeX, cellSizeY);
+						//get the cell that the point belongs to
+						vector<int> cellVec = GetCellValues(data[k].x, data[k].y, cellSizeX, cellSizeY, arX, arY);
 
-					//adding values to the cell, adding to number of times visited
-					pixelArray[cellVec[0]][cellVec[1]].val+= mean;
-					pixelArray[cellVec[0]][cellVec[1]].nVis++;
-					
+						//adding values to the cell, adding to number of times visited
+						pixelArray[cellVec[1]][cellVec[0]].val+= mean;
+						pixelArray[cellVec[1]][cellVec[0]].nVis++;
+					}			
 				}
+		/*		output << "\n";
+				output << "kol " << j << ", rad " << i << "\n";
+				for(int m=0; m < arY; m++){
+					for(int n=0; n < arX; n++){
+						output << pixelArray[m][n].nVis << "   ;   ";
+					}
+					output << "\n";
+				}
+				output << "\n";*/
 			}
+			//output << "\n";
 		}
+
 		//Iterate over the cells in order to draw the surface
-		for(y=field.boundMin()[1], j=0; j<drawnGreyField.dims()[1]; y=y+pixelSizeY, j++){
+		for(y=field.boundMin()[1], j=0; j<arY; y=y+pixelSizeY, j++){
 			float x;
 			int i;
-			for(x=field.boundMin()[0], i=0; i<drawnGreyField.dims()[0]; x=x+pixelSizeX, i++){
+			for(x=field.boundMin()[0], i=0; i<arX; x=x+pixelSizeX, i++){
 				//Draw
-				float finalMean = 0;
+				float finalMean = pixelArray[i][j].val;
 				if(pixelArray[i][j].nVis != 0){
 					finalMean = pixelArray[i][j].val/pixelArray[i][j].nVis;
+				}
+				else{
+					output << "not been visited:  x: " << i << " , y: " << j << "\n";
 				}
 				drawnGreyField.setNodeScalar(i,j,finalMean);
 			}
@@ -504,17 +526,31 @@ void Task61::LIC(){
 
 
 //Calculate the cell from the point position
-vector<int> Task61::GetCellValues(float posX, float posY, float pixelSizeX, float pixelSizeY){
+vector<int> Task61::GetCellValues(float posX, float posY, float maxX, float maxY, int celldimX, int celldimY){
 	vector<int> cellvector;
 
 	float tx = posX-field.boundMin()[0];
 	float ty = posY-field.boundMin()[1];
 
-	int xPosGrid = tx / pixelSizeX;
-	int yPosGrid = ty / pixelSizeY;
+	int xPosGrid = tx / maxX;
+	int yPosGrid = ty / maxY;
+
+	if(!(xPosGrid < celldimX)){
+		/*output << "\n x to large \n";
+		output << "tx : " << tx;
+		output << "maxY" << maxY;*/
+		xPosGrid = xPosGrid -1;
+	}
+
+	if(!(yPosGrid < celldimY)){
+		yPosGrid = yPosGrid -1;
+	}
 
 	cellvector.push_back(xPosGrid);
 	cellvector.push_back(yPosGrid);
+	
+	//output << "cellx Value: " << xPosGrid << "  , tx: " << tx << "  , xmax: " << maxX << "\n";
+	//output << "celly Value: " << yPosGrid << "  , ty: " << ty << "  , ymax: " << maxY << "\n" << "\n";
 
 	return cellvector;
 }
@@ -772,11 +808,11 @@ vector<pStream> Task61::PositionStream(VectorField2 field, float startX, float s
 	vector<pStream> finalVector;
 
 	//Vectors that will contain the positions of the stream line (-L to L)
-	vector<pStream> forward=RungeKuttaStreamlines(field, startX, startY, pixelSize, false);
-	vector<pStream> backward=RungeKuttaStreamlines(field, startX, startY, pixelSize, true);
+	vector<pStream> forward = RungeKuttaStreamlines(field, startX, startY, pixelSize, false);
+	vector<pStream> backward = RungeKuttaStreamlines(field, startX, startY, pixelSize, true);
 	
 	//Reserving memory for the two sets of position
-	finalVector.reserve(forward.size()+backward.size()+1);
+	//finalVector.reserve(forward.size()+backward.size()+1);
 	
 	//Adding backward
 	finalVector.insert(finalVector.end(), backward.begin(), backward.end());
