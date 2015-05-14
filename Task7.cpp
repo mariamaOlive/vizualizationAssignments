@@ -24,10 +24,8 @@ IMPLEMENT_GEOX_CLASS( Task7, 0)
     ADD_FLOAT32_PROP(ArrowScale, 0)
     ADD_NOARGS_METHOD(Task7::DrawVectorField)
 
-    ADD_SEPARATOR("Texture")
-    ADD_STRING_PROP(ImageFilename, 0)
-    ADD_BOOLEAN_PROP(bColoredTexture, 0)
-    ADD_NOARGS_METHOD(Task7::DrawTexture)
+    ADD_SEPARATOR("LIC")
+
 }
 
 QWidget* Task7::createViewer()
@@ -39,11 +37,9 @@ QWidget* Task7::createViewer()
 Task7::Task7()
 {
     viewer = NULL;
-    ScalarfieldFilename = "";
-    VectorfieldFilename = "";
+    ScalarfieldFilename = "NoisyHill.am";
+    VectorfieldFilename = "ANoise2CT4.am";
     ArrowScale = 0.1;
-    ImageFilename = "";
-    bColoredTexture = true;
 }
 
 Task7::~Task7() {}
