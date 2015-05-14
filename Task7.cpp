@@ -24,11 +24,15 @@ IMPLEMENT_GEOX_CLASS( Task7, 0)
     ADD_FLOAT32_PROP(ArrowScale, 0)
     ADD_NOARGS_METHOD(Task7::DrawVectorField)
 
+
     ADD_SEPARATOR("Texture")
     ADD_STRING_PROP(ImageFilename, 0)
     ADD_BOOLEAN_PROP(bColoredTexture, 0)
     ADD_NOARGS_METHOD(Task7::DrawTexture)
 	ADD_NOARGS_METHOD(Task7::RunFindingZero)
+
+    ADD_SEPARATOR("LIC")
+
 }
 
 QWidget* Task7::createViewer()
@@ -40,13 +44,11 @@ QWidget* Task7::createViewer()
 Task7::Task7()
 {
     viewer = NULL;
-    ScalarfieldFilename = "";
+    ScalarfieldFilename = "NoisyHill.am";
     VectorfieldFilename = "ANoise2CT4.am";
     ArrowScale = 0.1;
     ImageFilename = "";
     bColoredTexture = true;
-
-	
 }
 
 Task7::~Task7() {}
@@ -95,6 +97,7 @@ void Task7::DrawScalarField()
         output << "Error loading field file " << ScalarfieldFilename << "\n";
         return;
     }
+
 
     //Get the minimum/maximum value in that field
     float32 min = std::numeric_limits<float32>::max();
@@ -150,7 +153,29 @@ void Task7::DrawVectorField()
             Vector2f vec = field.sample(x,y);
             vec.normalize();
 
-            viewer->addLine(x, y, x + ArrowScale*vec[0], y + ArrowScale*vec[1]);
+			viewer->addLine(x, y, x + ArrowScale*vec[0], y + ArrowScale*vec[1]);
+
+			//Adds points with colors depending on the orientation (may be useful for the algorithm, if not implemented yet)
+			Point2D P(x,y);
+			P.size  = 10;
+			if (vec[0] > 0) {
+				if (vec[1] > 0) {	// right-top
+					P.color = makeVector4f(0,1,0,1);
+				}
+				else {				// right-bottom
+					P.color = makeVector4f(0,1,1,1);
+				}
+			}
+			else {
+				if (vec[1] > 0) {	// left-top
+					P.color = makeVector4f(1,1,0,1);
+				}
+				else {				// left-bottom
+					P.color = makeVector4f(1,0,0,1);
+				}
+			}
+			
+			viewer->addPoint(P);
         }
     }
 
