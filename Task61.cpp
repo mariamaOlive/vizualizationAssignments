@@ -65,8 +65,8 @@ Task61::Task61()
     ImageFilename = "";
     bColoredTexture = false;
 
-	SampleX = 4;
-	SampleY = 8;
+	SampleX = 16;
+	SampleY = 128;
 	KernelSize = 0.1;
 	Seed = 1;
 
@@ -465,15 +465,23 @@ void Task61::LIC(){
 
 			for(x=field.boundMin()[0], i=0;  i<arX; x=x+pixelSizeX, i++){
 				//output << "in x \n";
-				//output << "j:" << j << "i: " << i << " nvis:" << pixelArray[j][i].nVis << "\n";
-				/*output << "\n";
+				output << "j:" << j << " , i: " << i << "\n";
+			//	output << " nvis:" << pixelArray[j][i].nVis << "\n";
+			/*	output << "\n";
 				output << "j " << j << ", i " << i << "\n";
 				output << "y " << y - field.boundMin()[1] << ", x " << x - field.boundMin()[0]<< "\n";*/
 				if(pixelArray[j][i].nVis == 0){
 
+					//output <<"vis check ok \n";
+
+					if(j == 47 && i ==8){
+						printComments = true;
+					}
+
 					//get the streamline data
 					vector<pStream> data = PositionStream(field, x, y, pixelSize);
 				
+					//output <<"after data";
 					//store data
 					for(int k = 0; k < data.size(); k++){
 
@@ -499,17 +507,32 @@ void Task61::LIC(){
 							output << "npoints0" << "\n";
 						}
 
+
 						//get the cell that the point belongs to
 						vector<int> cellVec = GetCellValues(data[k].x, data[k].y, cellSizeX, cellSizeY, arX, arY);
+
+						if(data[k].x == x){
+							cellVec[0] = i;
+						}
+
+						if(data[k].y == y){
+							cellVec[1] = j;
+						}
+
+						//output << "before cell aloc \n cell:" << cellVec[1] << ","<< cellVec[0] << "\n";
+						//output << pixelArray[cellVec[1]][cellVec[0]].nVis << "\n";
 
 						//adding values to the cell, adding to number of times visited
 						pixelArray[cellVec[1]][cellVec[0]].val+= mean;
 						pixelArray[cellVec[1]][cellVec[0]].nVis++;
-					}			
+
+						//output << "k " << k << "processed: \n";
+					}
+					//output << "cell processed:" << "\n";
 				}
 				//output << "\n";
 				//output << "kol " << j << ", rad " << i << "\n";
-			/*	for(int m=0; m < arY; m++){
+				/*for(int m=0; m < arY; m++){
 					for(int n=0; n < arX; n++){
 						output << pixelArray[m][n].nVis << "   ;   ";
 					}
@@ -577,13 +600,11 @@ vector<int> Task61::GetCellValues(float posX, float posY, float maxX, float maxY
 	float tx = posX-field.boundMin()[0];
 	float ty = posY-field.boundMin()[1];
 
-	int xPosGrid = (tx / maxX) + 0.000001;			//hotfix for int converting
-	int yPosGrid = (ty / maxY) + 0.000001;
+	int xPosGrid = floor ((tx / maxX));			//hotfix for int converting
+	int yPosGrid = floor ((ty / maxY));
 
 	if(!(xPosGrid < celldimX)){
-	/*	output << "\n x to large \n";
-		output << "tx : " << tx;
-		output << "maxY" << maxY;*/
+
 		xPosGrid = xPosGrid -1;
 	}
 
@@ -879,15 +900,25 @@ vector<pStream> Task61::PositionStream(VectorField2 field, float startX, float s
 	//Final vector to be returned
 	vector<pStream> finalVector;
 
+	//output <<"i PosStream \n";
+
 	//Vectors that will contain the positions of the stream line (-L to L)
 	vector<pStream> forward = RungeKuttaStreamlines(field, startX, startY, pixelSize, false);
+
+	//output <<"forw ok \n";
+
 	vector<pStream> backward = RungeKuttaStreamlines(field, startX, startY, pixelSize, true);
+
+
+	//output <<"back ok \n";
 	
 	//Reserving memory for the two sets of position
 	finalVector.reserve(forward.size()+backward.size()+1);
 	
 	//Adding backward
 	finalVector.insert(finalVector.end(), backward.begin(), backward.end());
+
+	//output <<"forw ins ok \n";
 
 	//Adding a final point (the point byitself)
 	pStream p;
@@ -896,8 +927,12 @@ vector<pStream> Task61::PositionStream(VectorField2 field, float startX, float s
 	p.val = Gray.sampleScalar(startX,startY);
 	finalVector.push_back(p);
 
+	//output <<"point ok\n";
+
 	//Adding forward
 	finalVector.insert(finalVector.end(), forward.begin(), forward.end());
+
+	//output <<"end PosStream \n";
 
 	return finalVector;
 }
@@ -905,6 +940,10 @@ vector<pStream> Task61::PositionStream(VectorField2 field, float startX, float s
 
 //Runge-Kutta
  vector<pStream> Task61::RungeKuttaStreamlines(VectorField2 field, float startX, float startY,float stepSize, bool backwards){
+
+	 if(printComments){
+		 output <<"i RK \n";
+	 }
 
 	 //The vector to be returned with the positions
 	 vector<pStream> positions;
@@ -925,9 +964,14 @@ vector<pStream> Task61::PositionStream(VectorField2 field, float startX, float s
 	//Checks if initial point is out of boundaries
 	if ((x[0] < field.boundMin()[0])||(x[0] > field.boundMax()[0])||(x[1] < field.boundMin()[1])||(x[1] > field.boundMax()[1])) {
 		outOfBounds = true;
-	//	if(printComments)
-	//	  output << "Out of bounds! \n";
+		if(printComments)
+		  output << "Out of bounds! \n";
+		 printComments = false;
 	}
+
+	/*if(printComments){
+		output << "after first bound check, before verifiing startspeed  \n";
+	 }*/
 
 	//Verifing if starts at zeroSpeed
 	Vector2f sampleVector = field.sample(x[0], x[1]);
@@ -940,6 +984,9 @@ vector<pStream> Task61::PositionStream(VectorField2 field, float startX, float s
 	//bugFix
 	float past=0;
 	for(int i = 0; ((!outOfBounds) && (!tooSlow) && (!zeroSpeed) && (!fix)); i++){
+		if(printComments){
+			output << "i början på foor loop \n";
+		}
 
 	//The 4 vectors of th RK method
 		Vector2f v1 = field.sample(x[0],x[1]);
@@ -982,18 +1029,24 @@ vector<pStream> Task61::PositionStream(VectorField2 field, float startX, float s
 		}
 		past=length;
 
+	/*	if(printComments){
+			output << "before for-loop speed check  \n";
+			output << "x1:" << x1[0] << ", y1: " << x1[1] << "  \n";
+			//output << "sampleval: " << field.sample(x1[0], x1[1]) << "  \n";
+		 }*/
+
 	//Calculates speed (actual vector size) by sampling
 		Vector2f sampleVector = field.sample(x1[0], x1[1]);
 		a = sampleVector[0]-x1[0];
 		b = sampleVector[1]-x1[1];
 		speed = sqrt(pow(a,2)+pow(b,2));
 		//output << "speed: " << speed << "\n";
-		
+
 		//Checks boundary limits
 		if ((x1[0] < field.boundMin()[0])||(x1[0] > field.boundMax()[0])||(x1[1] < field.boundMin()[1])||(x1[1] > field.boundMax()[1])) {
 			outOfBounds = true;
-			//if(printComments)
-			  //output << "Out of bounds! \n";
+			/*if(printComments)
+			  output << "Out of bounds! \n";*/
 		}else if(speed==0){
 			zeroSpeed=true;
 			//output<<"zero speed"<< "\n";
@@ -1004,23 +1057,43 @@ vector<pStream> Task61::PositionStream(VectorField2 field, float startX, float s
 		////	  //output << "Vector speed too slow... \n";
 		//}
 		else {
+			if(printComments){
+				output << "al rk calc correct know add the point \n";
+				output << "x1:" << x1[0] << ", y1: " << x1[1] << "  \n";
+			}
+
 			//Adding the point in the vector of positions
 			pStream point;
 			point.x=x1[0];
 			point.y=x1[1];
-			point.val = Gray.sampleScalar(x1[0],x1[1]);			
+			point.val = Gray.sampleScalar(x1[0],x1[1]);	
+
+			if(printComments){
+				output << "after val \n";
+			}
 			 
 			if(!backwards){
 				//forward
+				if(printComments){
+					output << "i forw alloc \n";
+				}
 				positions.push_back(point);
 			}else{
 				//backwards
+				if(printComments){
+					output << "i backw alloc \n";
+				}
 				positions.insert(positions.begin(),point);
 			}
 			x = x1;
 		}
 	}
 	
+	 if(printComments){
+		output << "ben of rk  \n";
+		printComments = false;
+	 }
+
 	return positions;
 }
 
