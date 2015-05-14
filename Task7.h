@@ -6,7 +6,8 @@
 #include "LinearAlgebra.h"
 #include "GLGeometryViewer.h"
 //---------------------------------------------------------------------------
-
+#include <limits>
+#include "Field2.hpp"
 
 /// This is an example experiment.
 ///
@@ -27,6 +28,9 @@ public:
     void DrawScalarField();
     void DrawVectorField();
     void DrawTexture();
+	void FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4, GLGeometryViewer* viewer);
+	void RunFindingZero();
+	bool Sign(float num);
     virtual QWidget* createViewer();
 
 //Attributes
@@ -45,6 +49,9 @@ public:
 
     ///Whether to draw the texture in RGB or grayscale
     bool bColoredTexture;
+
+	//Vector field to be loaded
+	VectorField2 field;
 
 protected:
     GLGeometryViewer* viewer;
