@@ -114,20 +114,20 @@ void Task7::DrawVectorField()
 
 			viewer->addLine(x, y, x + ArrowScale*vec[0], y + ArrowScale*vec[1]);
 
+			//Adds points with colors depending on the orientation (may be useful for the algorithm, if not implemented yet)
 			Point2D P(x,y);
-			P.size  = 5;
-			
+			P.size  = 10;
 			if (vec[0] > 0) {
 				if (vec[1] > 0) {	// right-top
 					P.color = makeVector4f(0,1,0,1);
 				}
 				else {				// right-bottom
-				
+					P.color = makeVector4f(0,1,1,1);
 				}
 			}
 			else {
 				if (vec[1] > 0) {	// left-top
-				
+					P.color = makeVector4f(1,1,0,1);
 				}
 				else {				// left-bottom
 					P.color = makeVector4f(1,0,0,1);
