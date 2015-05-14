@@ -57,6 +57,7 @@ void Task7::DrawScalarField()
         return;
     }
 
+
     //Get the minimum/maximum value in that field
     float32 min = std::numeric_limits<float32>::max();
     float32 max = -std::numeric_limits<float32>::max();
@@ -111,7 +112,29 @@ void Task7::DrawVectorField()
             Vector2f vec = field.sample(x,y);
             vec.normalize();
 
-            viewer->addLine(x, y, x + ArrowScale*vec[0], y + ArrowScale*vec[1]);
+			viewer->addLine(x, y, x + ArrowScale*vec[0], y + ArrowScale*vec[1]);
+
+			Point2D P(x,y);
+			P.size  = 5;
+			
+			if (vec[0] > 0) {
+				if (vec[1] > 0) {	// right-top
+					P.color = makeVector4f(0,1,0,1);
+				}
+				else {				// right-bottom
+				
+				}
+			}
+			else {
+				if (vec[1] > 0) {	// left-top
+				
+				}
+				else {				// left-bottom
+					P.color = makeVector4f(1,0,0,1);
+				}
+			}
+			
+			viewer->addPoint(P);
         }
     }
 
