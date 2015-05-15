@@ -160,9 +160,6 @@ void Task7::DrawVectorField()
         return;
     }
 
-	//Clears critical points vector
-	critPts.clear();
-
     //Draw vector directions (constant length)
     for(float32 x=field.boundMin()[0]; x<=field.boundMax()[0]; x+=0.08)
     {
@@ -373,8 +370,32 @@ void Task7::ClassifyPoints()
 			Vector2f eigenValsReal, eigenValsImg;
 			Matrix2f eigenVectors;
 			Jac.solveEigenProblem(eigenValsReal, eigenValsImg, eigenVectors);
-		
+			
 			// Analyse and decide
+			if(eigenValsImg[0] == 0 && eigenValsImg[1] == 0) {
+				if(eigenValsReal[0] > 0 && eigenValsReal[1] > 0) { //Repelling node (source)
+					critPts[i].color = makeVector4f(1,0,0,1);
+				}
+				else if(eigenValsReal[0] < 0 && eigenValsReal[1] < 0) { //Attracting node (sink)
+					critPts[i].color = makeVector4f(0,0,1,1);
+				}
+				else {	//Saddle point
+					critPts[i].color = makeVector4f(1,1,0,1);
+				}
+			}
+			else {
+				if(eigenValsReal[0] == 0 && eigenValsReal[1] == 0) { //Center
+					critPts[i].color = makeVector4f(0,1,0,1);
+				}
+				else if(eigenValsReal[0] == eigenValsReal[1] && eigenValsReal[0] > 0) { //Repelling focus
+					critPts[i].color = makeVector4f(1,0.5,0,1);
+				}
+				else if(eigenValsReal[0] == eigenValsReal[1] && eigenValsReal[0] < 0) { //Attracting focus
+					critPts[i].color = makeVector4f(0.5,0,1,1);
+				}
+			}
+			viewer->addPoint(critPts[i]);
+			viewer->refresh();
 			output << "Aloha!\n";
 
 		}
