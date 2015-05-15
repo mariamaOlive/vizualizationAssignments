@@ -47,7 +47,7 @@ Task7::Task7()
 {
     viewer = NULL;
     ScalarfieldFilename = "NoisyHill.am";
-    VectorfieldFilename = "ANoise2CT4.am";
+    VectorfieldFilename = "boussinesq2CT522.am";
     ArrowScale = 0.1;
     ImageFilename = "";
     bColoredTexture = true;
@@ -66,18 +66,18 @@ void Task7::RunFindingZero(){
 
 	Vector2ui dimention=field.dims();
 
-	float gapX= (abs(field.boundMax()[0]-field.boundMin()[0])/(field.dims()[0]-1))-0.1;
-	float gapY= (abs(field.boundMax()[1]-field.boundMin()[1])/(field.dims()[1]-1))-0.1;
+	float gapX= (abs(field.boundMax()[0]-field.boundMin()[0])/(field.dims()[0]-1));
+	float gapY= (abs(field.boundMax()[1]-field.boundMin()[1])/(field.dims()[1]-1));
 
-	/*Vector2f p1= makeVector2f(field.boundMin()[0], field.boundMax()[1]);
-	Vector2f p2= makeVector2f(field.boundMax()[0], field.boundMax()[1]);
-	Vector2f p3= makeVector2f(field.boundMax()[0], field.boundMin()[1]);
-	Vector2f p4= makeVector2f(field.boundMin()[0], field.boundMin()[1]);
-*/
+	Vector2f maxV= field.boundMax();
+	float borderDiscount=.05;
+	maxV[0]-=borderDiscount;
+	maxV[1]-=borderDiscount;
+
 	//Draw vector directions (constant length)
-    for(float32 x=field.boundMin()[0]; x<field.boundMax()[0]; x+=gapX)
+    for(float32 x=field.boundMin()[0]; x<=maxV[0]; x+=gapX)
     {
-        for(float32 y=field.boundMin()[1]; y<field.boundMax()[1]; y+=gapY)
+        for(float32 y=field.boundMin()[1]; y<=maxV[1]; y+=gapY)
         {
 			Vector2f p1= makeVector2f(x, y+gapY);
 			Vector2f p2= makeVector2f(x+gapX,y+gapY);
@@ -85,19 +85,9 @@ void Task7::RunFindingZero(){
 			Vector2f p4= makeVector2f(x, y);
 			
 			FindingZeros(p1,p2,p3,p4);
-			int k=0;
+			
 		}
 	}
-
-	/*for(size_t j=0; j<field.dims()[1]; j++)
-    {
-        for(size_t i=0; i< field.dims()[0]; i++)
-        {
-            Vector2f val = field.node(i,j);
-			
-            int k=0;
-        }
-    }*/
 	
 	viewer->refresh();
 }
@@ -109,6 +99,7 @@ void Task7::DrawScalarField()
 
     //Load scalar field
     ScalarField2 field;
+	
     if (!field.load(ScalarfieldFilename))
     {
         output << "Error loading field file " << ScalarfieldFilename << "\n";
@@ -168,7 +159,7 @@ void Task7::DrawVectorField()
         for(float32 y=field.boundMin()[1]; y<=field.boundMax()[1]; y+=0.08)
         {
             Vector2f vec = field.sample(x,y);
-            vec.normalize();
+           // vec.normalize();
 
 			viewer->addLine(x, y, x + ArrowScale*vec[0], y + ArrowScale*vec[1]);
 
@@ -301,7 +292,7 @@ void Task7::FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4){
 
 	/*output<<p1<<" "<<p3<<"\n";*/
 	
-	float tolerance=.001;
+	float tolerance=.01;
 	//Test the size of the "square" and see if should be divided
 	Vector2f v12=makeVector2f(p1[0]-p2[0], p1[1]-p2[1]);
 	float v12Size= sqrt(v12.getSqrNorm());
