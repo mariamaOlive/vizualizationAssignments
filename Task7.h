@@ -32,7 +32,8 @@ public:
 	void RunFindingZero();
 	void ClassifyPoints();
 	void RungeKuttaStreamlines(VectorField2 field, float startX, float startY, float RKStepSize, bool backwards);
-	void DrawSeparatrices(Point2D P);
+	bool RKSingleStep(VectorField2 field, float startX, float startY, float RKStepSize, bool backwards);
+	void DrawSeparatrices(Point2D P, Matrix2f eigenVecs);
 	bool Sign(float num);
     virtual QWidget* createViewer();
 
@@ -64,6 +65,7 @@ public:
 	bool printComments;
 	bool normal;
 	float MinSpeed;
+	bool fix;
 
 protected:
     GLGeometryViewer* viewer;
