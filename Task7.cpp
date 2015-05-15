@@ -325,7 +325,7 @@ void Task7::FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4){
 		if(centerValueNorm<.0001){
 			//Add a point in the place since is zero 
 			Vector2f centerPoint= makeVector2f(cX,cY);
-			output<<"center norm:"<<centerValueNorm<<"\n";
+			//output<<"center norm:"<<centerValueNorm<<"\n";
 			Point2D P(centerPoint[0], centerPoint[1]);
 			P.size=10;
 			viewer->addPoint(P);
@@ -422,11 +422,16 @@ void Task7::ClassifyPoints()
 			}
 			viewer->addPoint(critPts[i]);
 			viewer->refresh();
-			output << "Aloha!\n";
+			//output << "Aloha!\n";
 
 		}
 
 
+	}
+	
+	//clear the values of the critPts
+	if(!critPts.empty()){
+		critPts.clear();
 	}
 	
 }
