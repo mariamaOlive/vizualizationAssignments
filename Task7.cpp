@@ -31,7 +31,7 @@ IMPLEMENT_GEOX_CLASS( Task7, 0)
     ADD_NOARGS_METHOD(Task7::DrawTexture)
 	ADD_NOARGS_METHOD(Task7::RunFindingZero)
 	ADD_NOARGS_METHOD(Task7::ClassifyPoints)
-	
+	ADD_NOARGS_METHOD(Task7::DrawSeparatrices)	
 
     ADD_SEPARATOR("LIC")
 
@@ -51,6 +51,10 @@ Task7::Task7()
     ArrowScale = 0.1;
     ImageFilename = "";
     bColoredTexture = true;
+
+	normal = true;
+	printComments = false;
+	MinSpeed = 0.1;
 
 }
 
@@ -152,6 +156,12 @@ void Task7::DrawVectorField()
         output << "Error loading field file " << VectorfieldFilename << "\n";
         return;
     }
+
+	//Draw boundrys
+	viewer->addLine(field.boundMin()[0], field.boundMin()[1], field.boundMin()[0], field.boundMax()[1], makeVector4f(1,1,0.5,1), 2);
+	viewer->addLine(field.boundMin()[0], field.boundMin()[1], field.boundMax()[0], field.boundMin()[1], makeVector4f(1,1,0.5,1), 2);
+	viewer->addLine(field.boundMin()[0], field.boundMax()[1], field.boundMax()[0], field.boundMax()[1], makeVector4f(1,1,0.5,1), 2);
+	viewer->addLine(field.boundMax()[0], field.boundMin()[1], field.boundMax()[0], field.boundMax()[1], makeVector4f(1,1,0.5,1), 2);
 
     //Draw vector directions (constant length)
     for(float32 x=field.boundMin()[0]; x<=field.boundMax()[0]; x+=0.08)
@@ -312,9 +322,10 @@ void Task7::FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4){
 		if(centerValueNorm<.0001){
 			//Add a point in the place since is zero 
 			Vector2f centerPoint= makeVector2f(cX,cY);
-			output<<"center norm:"<<centerValueNorm<<"\n";
+			//output<<"center norm:"<<centerValueNorm<<"\n";
 			Point2D P(centerPoint[0], centerPoint[1]);
-			P.size=5;
+			P.size=10;
+			P.color = makeVector4f(1,0.5,0.5,1);
 			viewer->addPoint(P);
 
 			//Trick to avoid multiple points in the same critical point
@@ -383,7 +394,7 @@ void Task7::ClassifyPoints()
 			Matrix2f eigenVectors;
 			Jac.solveEigenProblem(eigenValsReal, eigenValsImg, eigenVectors);
 			
-			// Analyse and decide
+			// Analyse and classify (colours)
 			if(eigenValsImg[0] == 0 && eigenValsImg[1] == 0) {
 				if(eigenValsReal[0] > 0 && eigenValsReal[1] > 0) { //Repelling node (source)
 					critPts[i].color = makeVector4f(1,0,0,1);
@@ -393,6 +404,7 @@ void Task7::ClassifyPoints()
 				}
 				else {	//Saddle point
 					critPts[i].color = makeVector4f(1,1,0,1);
+					DrawSeparatrices(critPts[i]);
 				}
 			}
 			else {
@@ -408,13 +420,114 @@ void Task7::ClassifyPoints()
 			}
 			viewer->addPoint(critPts[i]);
 			viewer->refresh();
-			output << "Aloha!\n";
+			//output << "Aloha!\n";
 
 		}
 
 
 	}
 	
+	//clear the values of the critPts
+	if(!critPts.empty()){
+		critPts.clear();
+	}
+	
 }
 
+//Runge-Kutta
+void Task7::RungeKuttaStreamlines(VectorField2 field, float startX, float startY, float RKStepSize, bool backwards){
 
+	// Different colors for forwards (green) and backwards (red)
+	Vector4f RKcolor = backwards ? makeVector4f(1,0,0,1) : makeVector4f(0,1,0,1);
+	
+	//Defining the start point
+	Vector2f startPoint = makeVector2f(startX,startY);
+	//Vector2f startPoint = makeVector2f((field.boundMin()[0] + field.boundMax()[0])/2,(field.boundMin()[1] + field.boundMax()[1])/2); // starting in the middle
+	//Vector2f startPoint = makeVector2f(field.boundMin()[0], field.boundMin()[1]);
+
+	Vector2f x = makeVector2f(startPoint[0], startPoint[1]);
+
+	float RKStepSize2 = backwards ? -RKStepSize : RKStepSize; // if "backwards" is checked, inverts sign of integration step
+	float a, b, length, speed;
+	float arcLength = 0;
+	bool outOfBounds = false;
+	bool tooSlow = false;
+
+	//Checks if initial point is out of boundaries
+	if ((x[0] < field.boundMin()[0])||(x[0] > field.boundMax()[0])||(x[1] < field.boundMin()[1])||(x[1] > field.boundMax()[1])) {
+		outOfBounds = true;
+		if(printComments)
+		  output << "Out of bounds! \n";
+	}
+
+	//for(int i = 0; ((i < RKSteps) && (arcLength < MaxLength) && (!outOfBounds) && (!tooSlow)); i++){
+	for(int i = 0; ((!outOfBounds) && (!tooSlow)); i++){
+
+	//The 4 vectors of th RK method
+		Vector2f v1 = field.sample(x[0],x[1]);
+		//v1.normalize();
+		if(normal){
+		v1.normalize();
+		}
+
+		Vector2f v2p = makeVector2f((x[0]+RKStepSize2*v1[0]/2),(x[1]+RKStepSize2*v1[1]/2));
+		Vector2f v2 = field.sample(v2p[0],v2p[1]);
+		if(normal){
+		v2.normalize();
+		}
+
+		Vector2f v3p = makeVector2f((x[0]+RKStepSize2*v2[0]/2),(x[1]+RKStepSize2*v2[1]/2));
+		Vector2f v3 = field.sample(v3p[0],v3p[1]);
+		if(normal){
+		v3.normalize();
+		}
+
+		Vector2f v4p = makeVector2f((x[0]+RKStepSize2*v3[0]),(x[1]+RKStepSize2*v3[1]));
+		Vector2f v4 = field.sample(v4p[0],v4p[1]);
+		if(normal){
+		v4.normalize();
+		}
+
+	//Combine the 4 vectors to get the end position
+		Vector2f x1 = makeVector2f(x[0]+RKStepSize2*(v1[0]/6 + v2[0]/3 + v3[0]/3 + v4[0]/6), x[1]+RKStepSize2*(v1[1]/6 + v2[1]/3 + v3[1]/3 + v4[1]/6));
+
+	//Calculates arc length
+		a = x1[0]-x[0];
+		b = x1[1]-x[1];
+		length = sqrt(pow(a,2)+pow(b,2));
+		arcLength += length;
+
+	//Calculates speed (actual vector size) by sampling
+		Vector2f sampleVector = field.sample(x1[0], x1[1]);
+		a = sampleVector[0]-x1[0];
+		b = sampleVector[1]-x1[1];
+		speed = sqrt(pow(a,2)+pow(b,2));
+		//output << "speed: " << speed << "\n";
+		
+		//Checks boundary limits
+		if ((x1[0] < field.boundMin()[0])||(x1[0] > field.boundMax()[0])||(x1[1] < field.boundMin()[1])||(x1[1] > field.boundMax()[1])) {
+			outOfBounds = true;
+			if(printComments)
+			  output << "Out of bounds! \n";
+		}
+		else if (speed < MinSpeed) {
+			tooSlow = true;
+			if(printComments)
+			  output << "Vector speed too slow... \n";
+		}
+		else {
+			//viewer->addPoint(x);
+			viewer->addLine(x, x1, RKcolor, 2);	
+			x = x1;
+		}
+	}
+	
+}
+
+void Task7::DrawSeparatrices(Point2D P)
+{
+	//Forward
+	RungeKuttaStreamlines(field, P.position[0]+0.001, P.position[1]+0.001, 0.01, false);
+	//Backwards
+	RungeKuttaStreamlines(field, P.position[0]-0.001, P.position[1]-0.001, 0.01, true);
+}

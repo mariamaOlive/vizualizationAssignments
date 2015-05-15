@@ -31,6 +31,8 @@ public:
 	void FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4);
 	void RunFindingZero();
 	void ClassifyPoints();
+	void RungeKuttaStreamlines(VectorField2 field, float startX, float startY, float RKStepSize, bool backwards);
+	void DrawSeparatrices(Point2D P);
 	bool Sign(float num);
     virtual QWidget* createViewer();
 
@@ -57,6 +59,11 @@ public:
 	//Vector of critical points
 	Vector2f lastCriticalPoint;
 	vector<Point2D> critPts;
+
+	//RK variables
+	bool printComments;
+	bool normal;
+	float MinSpeed;
 
 protected:
     GLGeometryViewer* viewer;
