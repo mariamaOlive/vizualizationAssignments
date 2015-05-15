@@ -463,7 +463,7 @@ void Task7::RungeKuttaStreamlines(VectorField2 field, float startX, float startY
 	}
 
 	//for(int i = 0; ((i < RKSteps) && (arcLength < MaxLength) && (!outOfBounds) && (!tooSlow)); i++){
-	for(int i = 0; ((i < 150000) && (!outOfBounds) && (!tooSlow)); i++){
+	for(int i = 0; ((i < 15000) && (!outOfBounds) && (!tooSlow)); i++){
 
 	//The 4 vectors of th RK method
 		Vector2f v1 = field.sample(x[0],x[1]);
@@ -514,11 +514,11 @@ void Task7::RungeKuttaStreamlines(VectorField2 field, float startX, float startY
 			if(printComments)
 			  output << "Out of bounds! \n";
 		}
-		/*else if (speed < MinSpeed) {
+		else if (speed < MinSpeed) {
 			tooSlow = true;
 			if(printComments)
 			  output << "Vector speed too slow... \n";
-		}*/
+		}
 		else {
 			//viewer->addPoint(x);
 			viewer->addLine(x, x1, RKcolor, 2);	
