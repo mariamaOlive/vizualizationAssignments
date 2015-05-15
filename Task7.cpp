@@ -30,6 +30,8 @@ IMPLEMENT_GEOX_CLASS( Task7, 0)
     ADD_BOOLEAN_PROP(bColoredTexture, 0)
     ADD_NOARGS_METHOD(Task7::DrawTexture)
 	ADD_NOARGS_METHOD(Task7::RunFindingZero)
+	ADD_NOARGS_METHOD(Task7::ClassifyPoints)
+	
 
     ADD_SEPARATOR("LIC")
 
@@ -111,7 +113,6 @@ void Task7::DrawScalarField()
         return;
     }
 
-	
     //Get the minimum/maximum value in that field
     float32 min = std::numeric_limits<float32>::max();
     float32 max = -std::numeric_limits<float32>::max();
@@ -124,6 +125,7 @@ void Task7::DrawScalarField()
             max = val > max ? val : max;
         }
     }
+
 
     //Draw a point for each grid vertex.
     for(size_t j=0; j<field.dims()[1]; j++)
@@ -158,17 +160,20 @@ void Task7::DrawVectorField()
         return;
     }
 
+	//Clears critical points vector
+	critPts.clear();
+
     //Draw vector directions (constant length)
-    for(float32 x=field.boundMin()[0]; x<=field.boundMax()[0]; x+=0.2)
+    for(float32 x=field.boundMin()[0]; x<=field.boundMax()[0]; x+=0.08)
     {
-        for(float32 y=field.boundMin()[1]; y<=field.boundMax()[1]; y+=0.2)
+        for(float32 y=field.boundMin()[1]; y<=field.boundMax()[1]; y+=0.08)
         {
             Vector2f vec = field.sample(x,y);
             vec.normalize();
 
 			viewer->addLine(x, y, x + ArrowScale*vec[0], y + ArrowScale*vec[1]);
 
-			//Adds points with colors depending on the orientation (may be useful for the algorithm, if not implemented yet)
+			/*//Adds points with colors depending on the orientation (may be useful for the algorithm, if not implemented yet)
 			Point2D P(x,y);
 			P.size  = 10;
 			if (vec[0] > 0) {
@@ -188,7 +193,7 @@ void Task7::DrawVectorField()
 				}
 			}
 			
-			viewer->addPoint(P);
+			viewer->addPoint(P);*/
         }
     }
 
@@ -296,7 +301,7 @@ void Task7::FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4){
 	//  p4___p3
 
 	/*output<<p1<<" "<<p3<<"\n";*/
-
+	
 	//Test the size of the "square" and see if should be divided
 	Vector2f v12=makeVector2f(p1[0]-p2[0], p1[1]-p2[1]);
 	float v12Size= sqrt(v12.getSqrNorm());
@@ -320,6 +325,7 @@ void Task7::FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4){
 			Point2D P(centerPoint[0], centerPoint[1]);
 			P.size=5;
 			viewer->addPoint(P);
+			critPts.push_back(P); //Adds the point to global vector
 		}	
 		return;
 	}
@@ -354,6 +360,28 @@ void Task7::FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4){
 			FindingZeros(pCenter, p2p3, p3, p3p4);
 			FindingZeros(p1p4, pCenter,p3p4,p4);	
 	}
+}
+
+void Task7::ClassifyPoints()
+{
+	for(int i=0; i < critPts.size(); i++) {
+		//Sample Jacobian
+		Matrix2f Jac = field.sampleJacobian(critPts[i].position[0], critPts[i].position[1]);
+		
+		if(Jac.getDeterminant() != 0) {
+			// Compute Eigen values/vectors
+			Vector2f eigenValsReal, eigenValsImg;
+			Matrix2f eigenVectors;
+			Jac.solveEigenProblem(eigenValsReal, eigenValsImg, eigenVectors);
+		
+			// Analyse and decide
+			output << "Aloha!\n";
+
+		}
+
+
+	}
+	
 }
 
 
