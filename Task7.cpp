@@ -61,26 +61,39 @@ void Task7::RunFindingZero(){
         return;
     }
 
-	
+	Vector2ui dimention=field.dims();
+
+	float gapX= (abs(field.boundMax()[0]-field.boundMin()[0])/(field.dims()[0]-1))-0.1;
+	float gapY= (abs(field.boundMax()[1]-field.boundMin()[1])/(field.dims()[1]-1))-0.1;
+
 	/*Vector2f p1= makeVector2f(field.boundMin()[0], field.boundMax()[1]);
 	Vector2f p2= makeVector2f(field.boundMax()[0], field.boundMax()[1]);
 	Vector2f p3= makeVector2f(field.boundMax()[0], field.boundMin()[1]);
 	Vector2f p4= makeVector2f(field.boundMin()[0], field.boundMin()[1]);
 */
-	float gap=.05;
 	//Draw vector directions (constant length)
-    for(float32 x=field.boundMin()[0]; x<=field.boundMax()[0]; x+=gap)
+    for(float32 x=field.boundMin()[0]; x<field.boundMax()[0]; x+=gapX)
     {
-        for(float32 y=field.boundMin()[1]; y<=field.boundMax()[1]; y+=gap)
+        for(float32 y=field.boundMin()[1]; y<field.boundMax()[1]; y+=gapY)
         {
-			Vector2f p1= makeVector2f(x, y+gap);
-			Vector2f p2= makeVector2f(x+gap,y+gap);
-			Vector2f p3= makeVector2f(x+gap, y);
+			Vector2f p1= makeVector2f(x, y+gapY);
+			Vector2f p2= makeVector2f(x+gapX,y+gapY);
+			Vector2f p3= makeVector2f(x+gapX, y);
 			Vector2f p4= makeVector2f(x, y);
 			
-			FindingZeros(p1,p2,p3,p4,viewer);
+			FindingZeros(p1,p2,p3,p4);
 		}
 	}
+
+	/*for(size_t j=0; j<field.dims()[1]; j++)
+    {
+        for(size_t i=0; i< field.dims()[0]; i++)
+        {
+            Vector2f val = field.node(i,j);
+			
+            int k=0;
+        }
+    }*/
 	
 	viewer->refresh();
 }
@@ -98,7 +111,7 @@ void Task7::DrawScalarField()
         return;
     }
 
-
+	
     //Get the minimum/maximum value in that field
     float32 min = std::numeric_limits<float32>::max();
     float32 max = -std::numeric_limits<float32>::max();
@@ -275,7 +288,7 @@ bool Task7::Sign(float num){
 	}
 }
 
-void Task7::FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4, GLGeometryViewer* viewer){
+void Task7::FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4){
 
 	//Points position
 	//  p1___p2
@@ -290,7 +303,7 @@ void Task7::FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4, GLGeom
 	Vector2f v14=makeVector2f(p1[0]-p4[0], p1[1]-p4[1]);
 	float v14Size= sqrt(v14.getSqrNorm());
 	
-	if(v12Size<.005|| v14Size<.005){
+	if(v12Size<.0005|| v14Size<.0001){
 		//Time to test if the central value is ZERO	or close to it	
 		float cX=p1[0]+v12Size/2;
 		float cY=p1[1]-v14Size/2;
@@ -300,10 +313,10 @@ void Task7::FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4, GLGeom
 		/*output<<"final: "<<p1<<" "<<p3<<"\n";
 		output<<"center norm:"<<centerValueNorm<<"\n";*/
 
-		if(centerValueNorm<.01){
+		if(centerValueNorm<.005){
 			//Add a point in the place since is zero 
 			Vector2f centerPoint= makeVector2f(cX,cY);
-			
+			//output<<"center norm:"<<centerValueNorm<<"\n";
 			Point2D P(centerPoint[0], centerPoint[1]);
 			P.size=5;
 			viewer->addPoint(P);
@@ -336,10 +349,10 @@ void Task7::FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4, GLGeom
 			Vector2f pCenter= makeVector2f(p1[0]+v12Size/2, p1[1]-v14Size/2);
 
 
-			FindingZeros(p1,p1p2, pCenter,p1p4,viewer);
-			FindingZeros(p1p2, p2,p2p3,pCenter,viewer);
-			FindingZeros(pCenter, p2p3, p3, p3p4,viewer);
-			FindingZeros(p1p4, pCenter,p3p4,p4,viewer);	
+			FindingZeros(p1,p1p2, pCenter,p1p4);
+			FindingZeros(p1p2, p2,p2p3,pCenter);
+			FindingZeros(pCenter, p2p3, p3, p3p4);
+			FindingZeros(p1p4, pCenter,p3p4,p4);	
 	}
 }
 

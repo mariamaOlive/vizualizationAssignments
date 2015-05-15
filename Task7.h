@@ -28,7 +28,7 @@ public:
     void DrawScalarField();
     void DrawVectorField();
     void DrawTexture();
-	void FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4, GLGeometryViewer* viewer);
+	void FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4);
 	void RunFindingZero();
 	bool Sign(float num);
     virtual QWidget* createViewer();
