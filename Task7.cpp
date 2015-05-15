@@ -51,6 +51,7 @@ Task7::Task7()
     ArrowScale = 0.1;
     ImageFilename = "";
     bColoredTexture = true;
+
 }
 
 Task7::~Task7() {}
@@ -84,6 +85,7 @@ void Task7::RunFindingZero(){
 			Vector2f p4= makeVector2f(x, y);
 			
 			FindingZeros(p1,p2,p3,p4);
+			int k=0;
 		}
 	}
 
@@ -299,13 +301,14 @@ void Task7::FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4){
 
 	/*output<<p1<<" "<<p3<<"\n";*/
 	
+	float tolerance=.001;
 	//Test the size of the "square" and see if should be divided
 	Vector2f v12=makeVector2f(p1[0]-p2[0], p1[1]-p2[1]);
 	float v12Size= sqrt(v12.getSqrNorm());
 	Vector2f v14=makeVector2f(p1[0]-p4[0], p1[1]-p4[1]);
 	float v14Size= sqrt(v14.getSqrNorm());
 	
-	if(v12Size<.0005|| v14Size<.0001){
+	if(v12Size<.000001|| v14Size<.000001){
 		//Time to test if the central value is ZERO	or close to it	
 		float cX=p1[0]+v12Size/2;
 		float cY=p1[1]-v14Size/2;
@@ -315,13 +318,17 @@ void Task7::FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4){
 		/*output<<"final: "<<p1<<" "<<p3<<"\n";
 		output<<"center norm:"<<centerValueNorm<<"\n";*/
 
-		if(centerValueNorm<.005){
+		if(centerValueNorm<.0001){
 			//Add a point in the place since is zero 
 			Vector2f centerPoint= makeVector2f(cX,cY);
-			//output<<"center norm:"<<centerValueNorm<<"\n";
+			output<<"center norm:"<<centerValueNorm<<"\n";
 			Point2D P(centerPoint[0], centerPoint[1]);
 			P.size=5;
 			viewer->addPoint(P);
+
+			//Trick to avoid multiple points in the same critical point
+			lastCriticalPoint=makeVector2f(centerPoint[0], centerPoint[1]);
+
 			critPts.push_back(P); //Adds the point to global vector
 		}	
 		return;
@@ -351,11 +358,25 @@ void Task7::FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4){
 			Vector2f p3p4=makeVector2f(p4[0]+v12Size/2, p4[1]);
 			Vector2f pCenter= makeVector2f(p1[0]+v12Size/2, p1[1]-v14Size/2);
 
+			Vector2f d1V= makeVector2f(pCenter[0]-lastCriticalPoint[0],pCenter[1]-lastCriticalPoint[1]);
+			float d1=sqrt(d1V.getSqrNorm());
+			if(d1>tolerance)
+				FindingZeros(p1,p1p2, pCenter,p1p4);
+			
+			d1V= makeVector2f(pCenter[0]-lastCriticalPoint[0],pCenter[1]-lastCriticalPoint[1]);
+			d1=sqrt(d1V.getSqrNorm());
+			if(d1>tolerance)
+				FindingZeros(p1p2, p2,p2p3,pCenter);
 
-			FindingZeros(p1,p1p2, pCenter,p1p4);
-			FindingZeros(p1p2, p2,p2p3,pCenter);
-			FindingZeros(pCenter, p2p3, p3, p3p4);
-			FindingZeros(p1p4, pCenter,p3p4,p4);	
+			d1V= makeVector2f(pCenter[0]-lastCriticalPoint[0],pCenter[1]-lastCriticalPoint[1]);
+			d1=sqrt(d1V.getSqrNorm());
+			if(d1>tolerance)
+				FindingZeros(pCenter, p2p3, p3, p3p4);
+
+			d1V= makeVector2f(pCenter[0]-lastCriticalPoint[0],pCenter[1]-lastCriticalPoint[1]);
+			d1=sqrt(d1V.getSqrNorm());
+			if(d1>tolerance)
+				FindingZeros(p1p4, pCenter,p3p4,p4);	
 	}
 }
 
