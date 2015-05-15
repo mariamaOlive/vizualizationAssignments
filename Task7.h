@@ -55,6 +55,7 @@ public:
 	VectorField2 field;
 
 	//Vector of critical points
+	Vector2f lastCriticalPoint;
 	vector<Point2D> critPts;
 
 protected:
