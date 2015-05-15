@@ -538,5 +538,5 @@ void Task7::DrawSeparatrices(Point2D P)
 	//Forward
 	RungeKuttaStreamlines(field, P.position[0]+0.001, P.position[1]+0.001, 0.01, false);
 	//Backwards
-	//RungeKuttaStreamlines(field, P.position[0]+0.001, P.position[1]+0.001, 0.01, true);
+	RungeKuttaStreamlines(field, P.position[0]-0.001, P.position[1]-0.001, 0.01, true);
 }
