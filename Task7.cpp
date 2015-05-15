@@ -47,14 +47,14 @@ Task7::Task7()
 {
     viewer = NULL;
     ScalarfieldFilename = "NoisyHill.am";
-    VectorfieldFilename = "ANoise2CT4.am";
+    VectorfieldFilename = "CylinderGerrisC2T15.am";
     ArrowScale = 0.1;
     ImageFilename = "";
     bColoredTexture = true;
 
 	normal = true;
 	printComments = true;
-	MinSpeed = 0.1;
+	MinSpeed = 0.001;
 
 }
 
@@ -70,18 +70,18 @@ void Task7::RunFindingZero(){
 
 	Vector2ui dimention=field.dims();
 
-	float gapX= (abs(field.boundMax()[0]-field.boundMin()[0])/(field.dims()[0]-1))-0.1;
-	float gapY= (abs(field.boundMax()[1]-field.boundMin()[1])/(field.dims()[1]-1))-0.1;
+	float gapX= (abs(field.boundMax()[0]-field.boundMin()[0])/(field.dims()[0]-1));
+	float gapY= (abs(field.boundMax()[1]-field.boundMin()[1])/(field.dims()[1]-1));
 
-	/*Vector2f p1= makeVector2f(field.boundMin()[0], field.boundMax()[1]);
-	Vector2f p2= makeVector2f(field.boundMax()[0], field.boundMax()[1]);
-	Vector2f p3= makeVector2f(field.boundMax()[0], field.boundMin()[1]);
-	Vector2f p4= makeVector2f(field.boundMin()[0], field.boundMin()[1]);
-*/
+	Vector2f maxV= field.boundMax();
+	float borderDiscount=.05;
+	maxV[0]-=borderDiscount;
+	maxV[1]-=borderDiscount;
+
 	//Draw vector directions (constant length)
-    for(float32 x=field.boundMin()[0]; x<field.boundMax()[0]; x+=gapX)
+    for(float32 x=field.boundMin()[0]; x<=maxV[0]; x+=gapX)
     {
-        for(float32 y=field.boundMin()[1]; y<field.boundMax()[1]; y+=gapY)
+        for(float32 y=field.boundMin()[1]; y<=maxV[1]; y+=gapY)
         {
 			Vector2f p1= makeVector2f(x, y+gapY);
 			Vector2f p2= makeVector2f(x+gapX,y+gapY);
@@ -89,19 +89,9 @@ void Task7::RunFindingZero(){
 			Vector2f p4= makeVector2f(x, y);
 			
 			FindingZeros(p1,p2,p3,p4);
-			int k=0;
+			
 		}
 	}
-
-	/*for(size_t j=0; j<field.dims()[1]; j++)
-    {
-        for(size_t i=0; i< field.dims()[0]; i++)
-        {
-            Vector2f val = field.node(i,j);
-			
-            int k=0;
-        }
-    }*/
 	
 	viewer->refresh();
 }
@@ -113,6 +103,7 @@ void Task7::DrawScalarField()
 
     //Load scalar field
     ScalarField2 field;
+	
     if (!field.load(ScalarfieldFilename))
     {
         output << "Error loading field file " << ScalarfieldFilename << "\n";
@@ -166,13 +157,19 @@ void Task7::DrawVectorField()
         return;
     }
 
+	//Draw boundrys
+	viewer->addLine(field.boundMin()[0], field.boundMin()[1], field.boundMin()[0], field.boundMax()[1], makeVector4f(1,1,0.5,1), 2);
+	viewer->addLine(field.boundMin()[0], field.boundMin()[1], field.boundMax()[0], field.boundMin()[1], makeVector4f(1,1,0.5,1), 2);
+	viewer->addLine(field.boundMin()[0], field.boundMax()[1], field.boundMax()[0], field.boundMax()[1], makeVector4f(1,1,0.5,1), 2);
+	viewer->addLine(field.boundMax()[0], field.boundMin()[1], field.boundMax()[0], field.boundMax()[1], makeVector4f(1,1,0.5,1), 2);
+
     //Draw vector directions (constant length)
     for(float32 x=field.boundMin()[0]; x<=field.boundMax()[0]; x+=0.08)
     {
         for(float32 y=field.boundMin()[1]; y<=field.boundMax()[1]; y+=0.08)
         {
             Vector2f vec = field.sample(x,y);
-            vec.normalize();
+           // vec.normalize();
 
 			viewer->addLine(x, y, x + ArrowScale*vec[0], y + ArrowScale*vec[1]);
 
@@ -305,7 +302,7 @@ void Task7::FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4){
 
 	/*output<<p1<<" "<<p3<<"\n";*/
 	
-	float tolerance=.001;
+	float tolerance=.01;
 	//Test the size of the "square" and see if should be divided
 	Vector2f v12=makeVector2f(p1[0]-p2[0], p1[1]-p2[1]);
 	float v12Size= sqrt(v12.getSqrNorm());
@@ -328,6 +325,7 @@ void Task7::FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4){
 			//output<<"center norm:"<<centerValueNorm<<"\n";
 			Point2D P(centerPoint[0], centerPoint[1]);
 			P.size=10;
+			P.color = makeVector4f(1,0.5,0.5,1);
 			viewer->addPoint(P);
 
 			//Trick to avoid multiple points in the same critical point
@@ -421,7 +419,7 @@ void Task7::ClassifyPoints()
 				}
 			}
 			viewer->addPoint(critPts[i]);
-			viewer->refresh();
+			
 			//output << "Aloha!\n";
 
 		}
@@ -429,6 +427,8 @@ void Task7::ClassifyPoints()
 
 	}
 	
+	viewer->refresh();
+
 	//clear the values of the critPts
 	if(!critPts.empty()){
 		critPts.clear();
@@ -463,7 +463,7 @@ void Task7::RungeKuttaStreamlines(VectorField2 field, float startX, float startY
 	}
 
 	//for(int i = 0; ((i < RKSteps) && (arcLength < MaxLength) && (!outOfBounds) && (!tooSlow)); i++){
-	for(int i = 0; ((i < 1000) && (!outOfBounds) && (!tooSlow)); i++){
+	for(int i = 0; ((i < 150000) && (!outOfBounds) && (!tooSlow)); i++){
 
 	//The 4 vectors of th RK method
 		Vector2f v1 = field.sample(x[0],x[1]);
@@ -514,13 +514,13 @@ void Task7::RungeKuttaStreamlines(VectorField2 field, float startX, float startY
 			if(printComments)
 			  output << "Out of bounds! \n";
 		}
-		else if (speed < MinSpeed) {
+		/*else if (speed < MinSpeed) {
 			tooSlow = true;
 			if(printComments)
 			  output << "Vector speed too slow... \n";
-		}
+		}*/
 		else {
-			viewer->addPoint(x);
+			//viewer->addPoint(x);
 			viewer->addLine(x, x1, RKcolor, 2);	
 			x = x1;
 		}
@@ -610,7 +610,7 @@ bool Task7::RKSingleStep(VectorField2 field, float startX, float startY, float R
 			  output << "Vector speed too slow... \n";
 		}
 		else {
-			viewer->addPoint(x);
+			//viewer->addPoint(x);
 			viewer->addLine(x, x1, RKcolor, 2);	
 			//x = x1;
 			if (x1.getSqrNorm() > x.getSqrNorm()) 
@@ -625,38 +625,22 @@ bool Task7::RKSingleStep(VectorField2 field, float startX, float startY, float R
 
 void Task7::DrawSeparatrices(Point2D P, Matrix2f eigenVecs)
 {
-	//First Eigen Vector
-	//Forward
+	// Tests with single step RK to get orientation of the stream line
 	if (RKSingleStep(field, P.position[0]+0.01*eigenVecs[0][0], P.position[1]+0.01*eigenVecs[0][1], 0.01, false)) {
-		RungeKuttaStreamlines(field, P.position[0]+0.01*eigenVecs[0][0], P.position[1]+0.01*eigenVecs[0][1], 0.01, false);
-		RungeKuttaStreamlines(field, P.position[0]-0.01*eigenVecs[0][0], P.position[1]-0.01*eigenVecs[0][1], 0.01, false);
-		RungeKuttaStreamlines(field, P.position[0]+0.01*eigenVecs[1][0], P.position[1]+0.01*eigenVecs[1][1], 0.01, true);
-		RungeKuttaStreamlines(field, P.position[0]-0.01*eigenVecs[1][0], P.position[1]-0.01*eigenVecs[1][1], 0.01, true);
+		//1st eigen vector direction
+		RungeKuttaStreamlines(field, P.position[0]+0.01*eigenVecs[0][0], P.position[1]+0.01*eigenVecs[0][1], 0.01, false);	
+		RungeKuttaStreamlines(field, P.position[0]-0.01*eigenVecs[0][0], P.position[1]-0.01*eigenVecs[0][1], 0.01, false);	
+		//2nd eigen vector direction (backwards)
+		RungeKuttaStreamlines(field, P.position[0]+0.01*eigenVecs[1][0], P.position[1]+0.01*eigenVecs[1][1], 0.01, true);	
+		RungeKuttaStreamlines(field, P.position[0]-0.01*eigenVecs[1][0], P.position[1]-0.01*eigenVecs[1][1], 0.01, true);	
 	}
 	else {
-		RungeKuttaStreamlines(field, P.position[0]+0.01*eigenVecs[0][0], P.position[1]+0.01*eigenVecs[0][1], 0.01, true);
-		RungeKuttaStreamlines(field, P.position[0]-0.01*eigenVecs[0][0], P.position[1]-0.01*eigenVecs[0][1], 0.01, true);
-		RungeKuttaStreamlines(field, P.position[0]+0.01*eigenVecs[1][0], P.position[1]+0.01*eigenVecs[1][1], 0.01, false);
-		RungeKuttaStreamlines(field, P.position[0]-0.01*eigenVecs[1][0], P.position[1]-0.01*eigenVecs[1][1], 0.01, false);
+		//1st eigen vector direction (backwards)
+		RungeKuttaStreamlines(field, P.position[0]+0.01*eigenVecs[0][0], P.position[1]+0.01*eigenVecs[0][1], 0.01, true);	
+		RungeKuttaStreamlines(field, P.position[0]-0.01*eigenVecs[0][0], P.position[1]-0.01*eigenVecs[0][1], 0.01, true);	
+		//2nd eigen vector direction
+		RungeKuttaStreamlines(field, P.position[0]+0.01*eigenVecs[1][0], P.position[1]+0.01*eigenVecs[1][1], 0.01, false);	
+		RungeKuttaStreamlines(field, P.position[0]-0.01*eigenVecs[1][0], P.position[1]-0.01*eigenVecs[1][1], 0.01, false);	
 	}
-	//////Backwards
-	//if (RKSingleStep(field, P.position[0]+0.01*eigenVecs[1][0], P.position[1]+0.01*eigenVecs[1][1], 0.01, false)) {
-	//	RungeKuttaStreamlines(field, P.position[0]+0.01*eigenVecs[1][0], P.position[1]+0.01*eigenVecs[1][1], 0.01, false);
-	//	RungeKuttaStreamlines(field, P.position[0]-0.01*eigenVecs[0][0], P.position[1]-0.01*eigenVecs[0][1], 0.01, false);
-	//}
-	//else {
-	//	RungeKuttaStreamlines(field, P.position[0]+0.01*eigenVecs[1][0], P.position[1]+0.01*eigenVecs[1][1], 0.01, true);
-	//	RungeKuttaStreamlines(field, P.position[0]-0.01*eigenVecs[0][0], P.position[1]-0.01*eigenVecs[0][1], 0.01, true);
-	//}
 
-	/*if(RKSingleStep(field, P.position[0]-0.01*eigenVecs[0][0], P.position[1]-0.01*eigenVecs[0][1], 0.01, false))
-		RungeKuttaStreamlines(field, P.position[0]-0.01*eigenVecs[0][0], P.position[1]-0.01*eigenVecs[0][1], 0.01, true);
-	else
-		RungeKuttaStreamlines(field, P.position[0]-0.01*eigenVecs[0][0], P.position[1]-0.01*eigenVecs[0][1], 0.01, false);*/
-
-	////Second Eigen Vector
-	////Forward
-	//RungeKuttaStreamlines(field, P.position[0]+0.001*eigenVecs[1][0], P.position[1]+0.001*eigenVecs[1][1], 0.01, false);
-	////Backwards
-	//RungeKuttaStreamlines(field, P.position[0]-0.001*eigenVecs[1][0], P.position[1]-0.001*eigenVecs[1][1], 0.01, false);
 }
