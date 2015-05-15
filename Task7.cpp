@@ -18,6 +18,7 @@ IMPLEMENT_GEOX_CLASS( Task7, 0)
     ADD_SEPARATOR("Scalarfield")
     ADD_STRING_PROP(ScalarfieldFilename, 0)
     ADD_NOARGS_METHOD(Task7::DrawScalarField)
+	ADD_BOOLEAN_PROP(SFCheck, 0)
 
     ADD_SEPARATOR("Vectorfield")
     ADD_STRING_PROP(VectorfieldFilename, 0)
@@ -28,8 +29,10 @@ IMPLEMENT_GEOX_CLASS( Task7, 0)
     ADD_SEPARATOR("Texture")
     ADD_STRING_PROP(ImageFilename, 0)
     ADD_BOOLEAN_PROP(bColoredTexture, 0)
+	
     ADD_NOARGS_METHOD(Task7::DrawTexture)
 	ADD_NOARGS_METHOD(Task7::RunFindingZero)
+	ADD_NOARGS_METHOD(Task7::RunFindingZeroScalar)
 	ADD_NOARGS_METHOD(Task7::ClassifyPoints)
 	ADD_NOARGS_METHOD(Task7::DrawSeparatrices)	
 
@@ -51,6 +54,7 @@ Task7::Task7()
     ArrowScale = 0.1;
     ImageFilename = "";
     bColoredTexture = true;
+	SFCheck=false;
 
 	normal = true;
 	printComments = false;
@@ -96,28 +100,60 @@ void Task7::RunFindingZero(){
 	viewer->refresh();
 }
 
+void Task7::RunFindingZeroScalar(){
+	//Load scalar field
+	if (!scalarField.load(ScalarfieldFilename))
+    {
+        output << "Error loading field file " << ScalarfieldFilename << "\n";
+        return;
+    }
+
+	float gapX= (abs(scalarField.boundMax()[0]-scalarField.boundMin()[0])/(scalarField.dims()[0]-1));
+	float gapY= (abs(scalarField.boundMax()[1]-scalarField.boundMin()[1])/(scalarField.dims()[1]-1));
+
+	Vector2f maxV= scalarField.boundMax();
+	float borderDiscount=.05;
+	maxV[0]-=borderDiscount;
+	maxV[1]-=borderDiscount;
+
+	//Draw vector directions (constant length)
+	for(float32 x=scalarField.boundMin()[0]; x<=maxV[0]; x+=gapX)
+    {
+		for(float32 y=scalarField.boundMin()[1]; y<=maxV[1]; y+=gapY)
+        {
+			Vector2f p1= makeVector2f(x, y+gapY);
+			Vector2f p2= makeVector2f(x+gapX,y+gapY);
+			Vector2f p3= makeVector2f(x+gapX, y);
+			Vector2f p4= makeVector2f(x, y);
+			
+			FindingZeros(p1,p2,p3,p4);
+			
+		}
+	}
+	
+	viewer->refresh();
+}
+
 
 void Task7::DrawScalarField()
 {
     viewer->clear();
 
     //Load scalar field
-    ScalarField2 field;
-	
-    if (!field.load(ScalarfieldFilename))
+	if (!scalarField.load(ScalarfieldFilename))
     {
         output << "Error loading field file " << ScalarfieldFilename << "\n";
         return;
     }
 
-    //Get the minimum/maximum value in that field
+    //Get the minimum/maximum value in that scalarField
     float32 min = std::numeric_limits<float32>::max();
     float32 max = -std::numeric_limits<float32>::max();
-    for(size_t j=0; j<field.dims()[1]; j++)
+	for(size_t j=0; j<scalarField.dims()[1]; j++)
     {
-        for(size_t i=0; i< field.dims()[0]; i++)
+        for(size_t i=0; i< scalarField.dims()[0]; i++)
         {
-            const float32 val = field.nodeScalar(i,j);
+            const float32 val = scalarField.nodeScalar(i,j);
             min = val < min ? val : min;
             max = val > max ? val : max;
         }
@@ -125,15 +161,15 @@ void Task7::DrawScalarField()
 
 
     //Draw a point for each grid vertex.
-    for(size_t j=0; j<field.dims()[1]; j++)
+    for(size_t j=0; j<scalarField.dims()[1]; j++)
     {
-        for(size_t i=0; i<field.dims()[0]; i++)
+        for(size_t i=0; i<scalarField.dims()[0]; i++)
         {
-            const float32 val = field.nodeScalar(i, j);
+            const float32 val = scalarField.nodeScalar(i, j);
             const float32 c = (val - min) / (max - min);
 
             Point2D p;
-            p.position  = field.nodePosition(i, j);
+            p.position  = scalarField.nodePosition(i, j);
             p.size = 5;
             //Use a grayscale depending on the actual value
             p.color[0] = c; p.color[1] = c; p.color[2] = c;
@@ -293,6 +329,22 @@ bool Task7::Sign(float num){
 	}
 }
 
+Vector2f Task7::GetSampleField(bool scalarFieldCheck, float x, float y){
+	
+	Vector2f returnVector;
+	
+	if(scalarFieldCheck){
+	//Get sample from the gradient
+		returnVector=scalarField.sampleGradient(x,y);
+	
+	}else{
+	//Get the sample from the vector field
+		returnVector=field.sample(x,y);
+	}
+
+	return returnVector;
+};
+
 void Task7::FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4){
 
 	//Points position
@@ -314,7 +366,7 @@ void Task7::FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4){
 		float cX=p1[0]+v12Size/2;
 		float cY=p1[1]-v14Size/2;
 
-		Vector2f centerValueVector=field.sample(cX,cY);
+		Vector2f centerValueVector=GetSampleField(SFCheck,cX,cY);
 		float centerValueNorm=sqrt(centerValueVector.getSqrNorm());
 		/*output<<"final: "<<p1<<" "<<p3<<"\n";
 		output<<"center norm:"<<centerValueNorm<<"\n";*/
@@ -337,10 +389,10 @@ void Task7::FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4){
 	}
 
 	//Collecting the sign of the points
-	Vector2f p1V=field.sample(p1);
-	Vector2f p2V=field.sample(p2);
-	Vector2f p3V=field.sample(p3);
-	Vector2f p4V=field.sample(p4);
+	Vector2f p1V=GetSampleField(SFCheck,p1[0], p1[1]);
+	Vector2f p2V=GetSampleField(SFCheck,p2[0], p2[1]);
+	Vector2f p3V=GetSampleField(SFCheck,p3[0], p3[1]);
+	Vector2f p4V=GetSampleField(SFCheck,p4[0], p4[1]);
 	bool p1X=Sign(p1V[0]);
 	bool p1Y=Sign(p1V[1]);
 	bool p2X=Sign(p2V[0]);
@@ -387,7 +439,6 @@ void Task7::ClassifyPoints()
 	for(int i=0; i < critPts.size(); i++) {
 		//Sample Jacobian
 		Matrix2f Jac = field.sampleJacobian(critPts[i].position[0], critPts[i].position[1]);
-		
 		if(Jac.getDeterminant() != 0) {
 			// Compute Eigen values/vectors
 			Vector2f eigenValsReal, eigenValsImg;

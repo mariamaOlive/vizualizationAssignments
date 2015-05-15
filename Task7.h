@@ -34,6 +34,8 @@ public:
 	void RungeKuttaStreamlines(VectorField2 field, float startX, float startY, float RKStepSize, bool backwards);
 	void DrawSeparatrices(Point2D P);
 	bool Sign(float num);
+	Vector2f GetSampleField(bool scalarField, float X, float Y);
+	void RunFindingZeroScalar();
     virtual QWidget* createViewer();
 
 //Attributes
@@ -55,6 +57,10 @@ public:
 
 	//Vector field to be loaded
 	VectorField2 field;
+	//Scalar field to be loaded
+	ScalarField2 scalarField;
+	//Boolean choosen if scalar field selected
+	bool SFCheck;
 
 	//Vector of critical points
 	Vector2f lastCriticalPoint;
