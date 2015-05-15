@@ -52,7 +52,7 @@ Task7::Task7()
     ImageFilename = "";
     bColoredTexture = true;
 
-	normal = false;
+	normal = true;
 	printComments = false;
 	MinSpeed = 0.1;
 
@@ -165,6 +165,12 @@ void Task7::DrawVectorField()
         output << "Error loading field file " << VectorfieldFilename << "\n";
         return;
     }
+
+	//Draw boundrys
+	viewer->addLine(field.boundMin()[0], field.boundMin()[1], field.boundMin()[0], field.boundMax()[1], makeVector4f(1,1,0.5,1), 2);
+	viewer->addLine(field.boundMin()[0], field.boundMin()[1], field.boundMax()[0], field.boundMin()[1], makeVector4f(1,1,0.5,1), 2);
+	viewer->addLine(field.boundMin()[0], field.boundMax()[1], field.boundMax()[0], field.boundMax()[1], makeVector4f(1,1,0.5,1), 2);
+	viewer->addLine(field.boundMax()[0], field.boundMin()[1], field.boundMax()[0], field.boundMax()[1], makeVector4f(1,1,0.5,1), 2);
 
     //Draw vector directions (constant length)
     for(float32 x=field.boundMin()[0]; x<=field.boundMax()[0]; x+=0.08)
@@ -328,6 +334,7 @@ void Task7::FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4){
 			//output<<"center norm:"<<centerValueNorm<<"\n";
 			Point2D P(centerPoint[0], centerPoint[1]);
 			P.size=10;
+			P.color = makeVector4f(1,0.5,0.5,1);
 			viewer->addPoint(P);
 
 			//Trick to avoid multiple points in the same critical point
@@ -518,7 +525,7 @@ void Task7::RungeKuttaStreamlines(VectorField2 field, float startX, float startY
 			  output << "Vector speed too slow... \n";
 		}
 		else {
-			viewer->addPoint(x);
+			//viewer->addPoint(x);
 			viewer->addLine(x, x1, RKcolor, 2);	
 			x = x1;
 		}
@@ -529,7 +536,7 @@ void Task7::RungeKuttaStreamlines(VectorField2 field, float startX, float startY
 void Task7::DrawSeparatrices(Point2D P)
 {
 	//Forward
-	RungeKuttaStreamlines(field, P.position[0]+0.05, P.position[1]+0.05, 0.01, false);
+	RungeKuttaStreamlines(field, P.position[0]+0.001, P.position[1]+0.001, 0.01, false);
 	//Backwards
-	RungeKuttaStreamlines(field, P.position[0]+0.05, P.position[1]+0.05, 0.01, true);
+	//RungeKuttaStreamlines(field, P.position[0]+0.001, P.position[1]+0.001, 0.01, true);
 }
