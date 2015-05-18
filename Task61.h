@@ -53,7 +53,7 @@ public:
 	vector<int> Task61::GetCellValues(float posX, float posY, float pixelSizeX, float pixelSizeY, int celldimX, int celldimY);
 
 	vector<float> Task61::RGBValues(VectorField2 field,float x, float y, float pixelSizeX, float pixelSizeY);
-
+	void Task61::FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4);
 //Attributes
 public:
 
