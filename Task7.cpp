@@ -45,12 +45,14 @@ IMPLEMENT_GEOX_CLASS( Task7, 0)
     ADD_STRING_PROP(ImageFilename, 0)
     ADD_BOOLEAN_PROP(bColoredTexture, 0)
     
+	ADD_NOARGS_METHOD(Task7::LoadGradientVectorField)
 	ADD_NOARGS_METHOD(Task7::DrawTexture)
 	ADD_NOARGS_METHOD(Task7::LIC)
 	ADD_NOARGS_METHOD(Task7::EnhanceContrast)
 	ADD_NOARGS_METHOD(Task7::RunFindingZero)
 	ADD_NOARGS_METHOD(Task7::RunFindingZeroScalar)
 	ADD_NOARGS_METHOD(Task7::ClassifyPoints)
+	
 }
 
 QWidget* Task7::createViewer()
@@ -125,30 +127,60 @@ void Task7::RunFindingZero(){
 			
 		}
 	}
+
+	
 	
 	viewer->refresh();
 }
 
-void Task7::RunFindingZeroScalar(){
+void Task7::LoadGradientVectorField(){
+
 	//Load scalar field
 	if (!scalarField.load(ScalarfieldFilename))
     {
         output << "Error loading field file " << ScalarfieldFilename << "\n";
         return;
+	}
+
+	//Initializing gradient field of vectors
+	gradientField.init(makeVector2f(scalarField.boundMin()[0],scalarField.boundMin()[1]),makeVector2f(scalarField.boundMax()[0],scalarField.boundMax()[1]), makeVector2ui(scalarField.dims()[0], scalarField.dims()[1]));
+
+	float gapX= (abs(gradientField.boundMax()[0]-gradientField.boundMin()[0])/(gradientField.dims()[0]-1));
+	float gapY= (abs(gradientField.boundMax()[1]-gradientField.boundMin()[1])/(gradientField.dims()[1]-1));
+
+	
+	//Set the values at the vertices
+	float y=gradientField.boundMin()[1];
+	for(size_t j=0; j<gradientField.dims()[1]; j++, y+=gapY)
+    {
+		float x=gradientField.boundMin()[0];
+		for(size_t i=0; i<gradientField.dims()[0]; i++, x+=gapX)
+        {
+			gradientField.setNode(i, j, scalarField.sampleGradient(x,y));
+        }
     }
 
-	float gapX= (abs(scalarField.boundMax()[0]-scalarField.boundMin()[0])/(scalarField.dims()[0]-1));
-	float gapY= (abs(scalarField.boundMax()[1]-scalarField.boundMin()[1])/(scalarField.dims()[1]-1));
+}
 
-	Vector2f maxV= scalarField.boundMax();
+void Task7::RunFindingZeroScalar(){
+	
+	//Creating the vector field of gradients 
+	LoadGradientVectorField();
+	
+	Vector2ui dimention=gradientField.dims();
+
+	float gapX= (abs(gradientField.boundMax()[0]-gradientField.boundMin()[0])/(gradientField.dims()[0]-1));
+	float gapY= (abs(gradientField.boundMax()[1]-gradientField.boundMin()[1])/(gradientField.dims()[1]-1));
+
+	Vector2f maxV= gradientField.boundMax();
 	float borderDiscount=.05;
 	maxV[0]-=borderDiscount;
 	maxV[1]-=borderDiscount;
 
 	//Draw vector directions (constant length)
-	for(float32 x=scalarField.boundMin()[0]; x<=maxV[0]; x+=gapX)
+	for(float32 x=gradientField.boundMin()[0]; x<=maxV[0]; x+=gapX)
     {
-		for(float32 y=scalarField.boundMin()[1]; y<=maxV[1]; y+=gapY)
+		for(float32 y=gradientField.boundMin()[1]; y<=maxV[1]; y+=gapY)
         {
 			Vector2f p1= makeVector2f(x, y+gapY);
 			Vector2f p2= makeVector2f(x+gapX,y+gapY);
@@ -221,17 +253,17 @@ void Task7::DrawVectorField()
     }
 
 	//Draw boundrys
-	viewer->addLine(field.boundMin()[0], field.boundMin()[1], field.boundMin()[0], field.boundMax()[1], makeVector4f(1,1,0.5,1), 2);
-	viewer->addLine(field.boundMin()[0], field.boundMin()[1], field.boundMax()[0], field.boundMin()[1], makeVector4f(1,1,0.5,1), 2);
-	viewer->addLine(field.boundMin()[0], field.boundMax()[1], field.boundMax()[0], field.boundMax()[1], makeVector4f(1,1,0.5,1), 2);
-	viewer->addLine(field.boundMax()[0], field.boundMin()[1], field.boundMax()[0], field.boundMax()[1], makeVector4f(1,1,0.5,1), 2);
+	viewer->addLine(gradientField.boundMin()[0], gradientField.boundMin()[1], gradientField.boundMin()[0], gradientField.boundMax()[1], makeVector4f(1,1,0.5,1), 2);
+	viewer->addLine(gradientField.boundMin()[0], gradientField.boundMin()[1], gradientField.boundMax()[0], gradientField.boundMin()[1], makeVector4f(1,1,0.5,1), 2);
+	viewer->addLine(gradientField.boundMin()[0], gradientField.boundMax()[1], gradientField.boundMax()[0], gradientField.boundMax()[1], makeVector4f(1,1,0.5,1), 2);
+	viewer->addLine(gradientField.boundMax()[0], gradientField.boundMin()[1], gradientField.boundMax()[0], gradientField.boundMax()[1], makeVector4f(1,1,0.5,1), 2);
 
     //Draw vector directions (constant length)
-    for(float32 x=field.boundMin()[0]; x<=field.boundMax()[0]; x+=0.08)
+    for(float32 x=gradientField.boundMin()[0]; x<=gradientField.boundMax()[0]; x+=0.08)
     {
-        for(float32 y=field.boundMin()[1]; y<=field.boundMax()[1]; y+=0.08)
+        for(float32 y=gradientField.boundMin()[1]; y<=gradientField.boundMax()[1]; y+=0.08)
         {
-            Vector2f vec = field.sample(x,y);
+            Vector2f vec = gradientField.sample(x,y);
            // vec.normalize();
 
 			viewer->addLine(x, y, x + ArrowScale*vec[0], y + ArrowScale*vec[1]);
@@ -277,7 +309,7 @@ Vector2f Task7::GetSampleField(bool scalarFieldCheck, float x, float y){
 	
 	if(scalarFieldCheck){
 	//Get sample from the gradient
-		returnVector=scalarField.sampleGradient(x,y);
+		returnVector=gradientField.sample(x,y);
 	
 	}else{
 	//Get the sample from the vector field

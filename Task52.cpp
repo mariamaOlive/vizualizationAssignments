@@ -107,9 +107,9 @@ void Task52::DrawVectorField()
     }
 
     //Draw vector directions (constant length)
-    for(float32 x=field.boundMin()[0]; x<=field.boundMax()[0]; x+=0.1)
+    for(float32 x=field.boundMin()[0]; x<=field.boundMax()[0]; x+=0.05)
     {
-        for(float32 y=field.boundMin()[1]; y<=field.boundMax()[1]; y+=0.1)
+        for(float32 y=field.boundMin()[1]; y<=field.boundMax()[1]; y+=0.05)
         {
             Vector2f vec = field.sample(x,y);
             //vec.normalize();

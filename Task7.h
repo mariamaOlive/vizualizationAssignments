@@ -45,6 +45,7 @@ public:
 	bool Sign(float num);
 	Vector2f GetSampleField(bool scalarField, float X, float Y);
 	void RunFindingZeroScalar();
+	void LoadGradientVectorField();
     virtual QWidget* createViewer();
 
 	//LIC and texture
@@ -76,6 +77,7 @@ public:
 	VectorField2 field;
 	//Scalar field to be loaded
 	ScalarField2 scalarField;
+	VectorField2 gradientField;
 	//Boolean choosen if scalar field selected
 	bool SFCheck;
 
