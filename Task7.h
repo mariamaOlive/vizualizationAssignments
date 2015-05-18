@@ -90,6 +90,7 @@ public:
 	bool normal;
 	float MinSpeed;
 	bool fix;
+	int r,w;
 
 	// **** LIC and Texture variables (from Task7) ****
 	

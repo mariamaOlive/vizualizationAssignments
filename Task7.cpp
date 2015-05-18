@@ -90,6 +90,9 @@ Task7::Task7()
 	BWTexture = false;
 	ScalarColor=true;
 
+	r=0;
+	w=0;
+
 }
 
 Task7::~Task7() {}
@@ -450,7 +453,8 @@ void Task7::ClassifyPoints()
 
 		}
 
-
+		output<<r<<"\n";
+		output<<w<<"\n";
 	}
 	
 	viewer->refresh();
@@ -651,22 +655,39 @@ bool Task7::RKSingleStep(VectorField2 field, float startX, float startY, float R
 void Task7::DrawSeparatrices(Point2D P, Matrix2f eigenVecs)
 {
 	// Tests with single step RK to get orientation of the stream line
-	if (RKSingleStep(field, P.position[0]+0.01*eigenVecs[0][0], P.position[1]+0.01*eigenVecs[0][1], 0.01, false)) {
-		//1st eigen vector direction
-		RungeKuttaStreamlinesVoid(field, P.position[0]+0.01*eigenVecs[0][0], P.position[1]+0.01*eigenVecs[0][1], 0.01, false);	
-		RungeKuttaStreamlinesVoid(field, P.position[0]-0.01*eigenVecs[0][0], P.position[1]-0.01*eigenVecs[0][1], 0.01, false);	
-		//2nd eigen vector direction (backwards)
-		RungeKuttaStreamlinesVoid(field, P.position[0]+0.01*eigenVecs[1][0], P.position[1]+0.01*eigenVecs[1][1], 0.01, true);	
-		RungeKuttaStreamlinesVoid(field, P.position[0]-0.01*eigenVecs[1][0], P.position[1]-0.01*eigenVecs[1][1], 0.01, true);	
-	}
-	else {
+	
+	//if (RKSingleStep(field, P.position[0]+0.000001*eigenVecs[0][0], P.position[1]+0.000001*eigenVecs[0][1], 0.01, false)) {
+	//	//1st eigen vector direction
+	//	RungeKuttaStreamlinesVoid(field, P.position[0]+0.01*eigenVecs[0][0], P.position[1]+0.01*eigenVecs[0][1], 0.01, false);	
+	//	RungeKuttaStreamlinesVoid(field, P.position[0]-0.01*eigenVecs[0][0], P.position[1]-0.01*eigenVecs[0][1], 0.01, false);	
+	//	//2nd eigen vector direction (backwards)
+	//	RungeKuttaStreamlinesVoid(field, P.position[0]+0.01*eigenVecs[1][0], P.position[1]+0.01*eigenVecs[1][1], 0.01, true);	
+	//	RungeKuttaStreamlinesVoid(field, P.position[0]-0.01*eigenVecs[1][0], P.position[1]-0.01*eigenVecs[1][1], 0.01, true);	
+	//	r++;
+	//}
+	//else {
+	//	//1st eigen vector direction (backwards)
+	//	RungeKuttaStreamlinesVoid(field, P.position[0]+0.01*eigenVecs[0][0], P.position[1]+0.01*eigenVecs[0][1], 0.01, true);	
+	//	RungeKuttaStreamlinesVoid(field, P.position[0]-0.01*eigenVecs[0][0], P.position[1]-0.01*eigenVecs[0][1], 0.01, true);	
+	//	//2nd eigen vector direction
+	//	RungeKuttaStreamlinesVoid(field, P.position[0]+0.01*eigenVecs[1][0], P.position[1]+0.01*eigenVecs[1][1], 0.01, false);	
+	//	RungeKuttaStreamlinesVoid(field, P.position[0]-0.01*eigenVecs[1][0], P.position[1]-0.01*eigenVecs[1][1], 0.01, false);	
+	//	w++;
+	//}
+
 		//1st eigen vector direction (backwards)
 		RungeKuttaStreamlinesVoid(field, P.position[0]+0.01*eigenVecs[0][0], P.position[1]+0.01*eigenVecs[0][1], 0.01, true);	
-		RungeKuttaStreamlinesVoid(field, P.position[0]-0.01*eigenVecs[0][0], P.position[1]-0.01*eigenVecs[0][1], 0.01, true);	
+		RungeKuttaStreamlinesVoid(field, P.position[0]+0.01*eigenVecs[0][0], P.position[1]+0.01*eigenVecs[0][1], 0.01, false);	
 		//2nd eigen vector direction
+		RungeKuttaStreamlinesVoid(field, P.position[0]-0.01*eigenVecs[1][0], P.position[1]-0.01*eigenVecs[1][1], 0.01, true);	
+		RungeKuttaStreamlinesVoid(field, P.position[0]-0.01*eigenVecs[1][0], P.position[1]-0.01*eigenVecs[1][1], 0.01, false);
+
+		//1st eigen vector direction (backwards)
+		RungeKuttaStreamlinesVoid(field, P.position[0]-0.01*eigenVecs[0][0], P.position[1]-0.01*eigenVecs[0][1], 0.01, true);	
+		RungeKuttaStreamlinesVoid(field, P.position[0]-0.01*eigenVecs[0][0], P.position[1]-0.01*eigenVecs[0][1], 0.01, false);	
+		////2nd eigen vector direction
+		RungeKuttaStreamlinesVoid(field, P.position[0]+0.01*eigenVecs[1][0], P.position[1]+0.01*eigenVecs[1][1], 0.01, true);	
 		RungeKuttaStreamlinesVoid(field, P.position[0]+0.01*eigenVecs[1][0], P.position[1]+0.01*eigenVecs[1][1], 0.01, false);	
-		RungeKuttaStreamlinesVoid(field, P.position[0]-0.01*eigenVecs[1][0], P.position[1]-0.01*eigenVecs[1][1], 0.01, false);	
-	}
 
 }
 
