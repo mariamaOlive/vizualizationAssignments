@@ -18,7 +18,6 @@ IMPLEMENT_GEOX_CLASS( Task7, 0)
     ADD_SEPARATOR("Scalarfield")
     ADD_STRING_PROP(ScalarfieldFilename, 0)
     ADD_NOARGS_METHOD(Task7::DrawScalarField)
-	ADD_BOOLEAN_PROP(SFCheck, 0)
 
     ADD_SEPARATOR("Vectorfield")
     ADD_STRING_PROP(VectorfieldFilename, 0)
@@ -96,6 +95,7 @@ Task7::Task7()
 Task7::~Task7() {}
 
 void Task7::RunFindingZero(){
+	viewer->clear();
 	//Load the vector field
     if (!field.load(VectorfieldFilename))
     {
@@ -143,44 +143,44 @@ void Task7::LoadGradientVectorField(){
 	}
 
 	//Initializing gradient field of vectors
-	gradientField.init(makeVector2f(scalarField.boundMin()[0],scalarField.boundMin()[1]),makeVector2f(scalarField.boundMax()[0],scalarField.boundMax()[1]), makeVector2ui(scalarField.dims()[0], scalarField.dims()[1]));
+	field.init(makeVector2f(scalarField.boundMin()[0],scalarField.boundMin()[1]),makeVector2f(scalarField.boundMax()[0],scalarField.boundMax()[1]), makeVector2ui(scalarField.dims()[0], scalarField.dims()[1]));
 
-	float gapX= (abs(gradientField.boundMax()[0]-gradientField.boundMin()[0])/(gradientField.dims()[0]-1));
-	float gapY= (abs(gradientField.boundMax()[1]-gradientField.boundMin()[1])/(gradientField.dims()[1]-1));
+	float gapX= (abs(field.boundMax()[0]-field.boundMin()[0])/(field.dims()[0]-1));
+	float gapY= (abs(field.boundMax()[1]-field.boundMin()[1])/(field.dims()[1]-1));
 
 	
 	//Set the values at the vertices
-	float y=gradientField.boundMin()[1];
-	for(size_t j=0; j<gradientField.dims()[1]; j++, y+=gapY)
+	float y=field.boundMin()[1];
+	for(size_t j=0; j<field.dims()[1]; j++, y+=gapY)
     {
-		float x=gradientField.boundMin()[0];
-		for(size_t i=0; i<gradientField.dims()[0]; i++, x+=gapX)
+		float x=field.boundMin()[0];
+		for(size_t i=0; i<field.dims()[0]; i++, x+=gapX)
         {
-			gradientField.setNode(i, j, scalarField.sampleGradient(x,y));
+			field.setNode(i, j, scalarField.sampleGradient(x,y));
         }
     }
 
 }
 
 void Task7::RunFindingZeroScalar(){
-	
+	viewer->clear();
 	//Creating the vector field of gradients 
 	LoadGradientVectorField();
 	
-	Vector2ui dimention=gradientField.dims();
+	Vector2ui dimention=field.dims();
 
-	float gapX= (abs(gradientField.boundMax()[0]-gradientField.boundMin()[0])/(gradientField.dims()[0]-1));
-	float gapY= (abs(gradientField.boundMax()[1]-gradientField.boundMin()[1])/(gradientField.dims()[1]-1));
+	float gapX= (abs(field.boundMax()[0]-field.boundMin()[0])/(field.dims()[0]-1));
+	float gapY= (abs(field.boundMax()[1]-field.boundMin()[1])/(field.dims()[1]-1));
 
-	Vector2f maxV= gradientField.boundMax();
+	Vector2f maxV= field.boundMax();
 	float borderDiscount=.05;
 	maxV[0]-=borderDiscount;
 	maxV[1]-=borderDiscount;
 
 	//Draw vector directions (constant length)
-	for(float32 x=gradientField.boundMin()[0]; x<=maxV[0]; x+=gapX)
+	for(float32 x=field.boundMin()[0]; x<=maxV[0]; x+=gapX)
     {
-		for(float32 y=gradientField.boundMin()[1]; y<=maxV[1]; y+=gapY)
+		for(float32 y=field.boundMin()[1]; y<=maxV[1]; y+=gapY)
         {
 			Vector2f p1= makeVector2f(x, y+gapY);
 			Vector2f p2= makeVector2f(x+gapX,y+gapY);
@@ -303,21 +303,21 @@ bool Task7::Sign(float num){
 	}
 }
 
-Vector2f Task7::GetSampleField(bool scalarFieldCheck, float x, float y){
-	
-	Vector2f returnVector;
-	
-	if(scalarFieldCheck){
-	//Get sample from the gradient
-		returnVector=gradientField.sample(x,y);
-	
-	}else{
-	//Get the sample from the vector field
-		returnVector=field.sample(x,y);
-	}
-
-	return returnVector;
-};
+//Vector2f Task7::GetSampleField(bool scalarFieldCheck, float x, float y){
+//	
+//	Vector2f returnVector;
+//	
+//	if(scalarFieldCheck){
+//	//Get sample from the gradient
+//		returnVector=gradientField.sample(x,y);
+//	
+//	}else{
+//	//Get the sample from the vector field
+//		returnVector=field.sample(x,y);
+//	}
+//
+//	return returnVector;
+//};
 
 void Task7::FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4){
 
@@ -340,7 +340,7 @@ void Task7::FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4){
 		float cX=p1[0]+v12Size/2;
 		float cY=p1[1]-v14Size/2;
 
-		Vector2f centerValueVector=GetSampleField(SFCheck,cX,cY);
+		Vector2f centerValueVector=field.sample(cX,cY);
 		float centerValueNorm=sqrt(centerValueVector.getSqrNorm());
 		/*output<<"final: "<<p1<<" "<<p3<<"\n";
 		output<<"center norm:"<<centerValueNorm<<"\n";*/
@@ -363,10 +363,10 @@ void Task7::FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4){
 	}
 
 	//Collecting the sign of the points
-	Vector2f p1V=GetSampleField(SFCheck,p1[0], p1[1]);
-	Vector2f p2V=GetSampleField(SFCheck,p2[0], p2[1]);
-	Vector2f p3V=GetSampleField(SFCheck,p3[0], p3[1]);
-	Vector2f p4V=GetSampleField(SFCheck,p4[0], p4[1]);
+	Vector2f p1V=field.sample(p1[0], p1[1]);
+	Vector2f p2V=field.sample(p2[0], p2[1]);
+	Vector2f p3V=field.sample(p3[0], p3[1]);
+	Vector2f p4V=field.sample(p4[0], p4[1]);
 	bool p1X=Sign(p1V[0]);
 	bool p1Y=Sign(p1V[1]);
 	bool p2X=Sign(p2V[0]);
