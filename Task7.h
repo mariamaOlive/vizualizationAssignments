@@ -14,6 +14,15 @@
 /// The code is meant to demonstrate how
 ///  to use the GeoX framework
 ///
+
+//Class resposible for representing the values of the stream line points
+class pStream7{
+	public:
+	float x;
+	float y;
+	float val;
+};
+
 class Task7 : public Experiment
 {
     GEOX_CLASS(Task7)
@@ -27,17 +36,30 @@ public:
 public:
     void DrawScalarField();
     void DrawVectorField();
-    void DrawTexture();
 	void FindingZeros(Vector2f p1,Vector2f p2,Vector2f p3,Vector2f p4);
 	void RunFindingZero();
 	void ClassifyPoints();
-	void RungeKuttaStreamlines(VectorField2 field, float startX, float startY, float RKStepSize, bool backwards);
+	void RungeKuttaStreamlinesVoid(VectorField2 field, float startX, float startY, float RKStepSize, bool backwards);
 	bool RKSingleStep(VectorField2 field, float startX, float startY, float RKStepSize, bool backwards);
 	void DrawSeparatrices(Point2D P, Matrix2f eigenVecs);
 	bool Sign(float num);
 	Vector2f GetSampleField(bool scalarField, float X, float Y);
 	void RunFindingZeroScalar();
     virtual QWidget* createViewer();
+
+	//LIC and texture
+	void DrawTexture();
+	void LoadFiles();
+	void LIC();
+	void EnhanceContrast();
+	vector<float> SumStream(VectorField2 field, float startX, float startY, float pixelSize, float L);
+	vector<float> RungeKuttaStreamlines(VectorField2 field, float startX, float startY,float stepSize, float length, bool backwards);
+	vector<pStream7> RungeKuttaStreamlines(VectorField2 field, float startX, float startY,float stepSize, bool backwards);
+	vector<pStream7> PositionStream(VectorField2 field, float startX, float startY, float pixelSize);
+	vector<int> Task7::GetCellValues(float posX, float posY, float pixelSizeX, float pixelSizeY, int celldimX, int celldimY);
+	vector<float> Task7::RGBValues(VectorField2 field,float x, float y, float pixelSizeX, float pixelSizeY);
+
+
 
 //Attributes
 public:
@@ -49,13 +71,7 @@ public:
 
     ///Length of the arrows
     float ArrowScale;
-
-    ///File name of the image for the texture
-    string ImageFilename;
-
-    ///Whether to draw the texture in RGB or grayscale
-    bool bColoredTexture;
-
+	
 	//Vector field to be loaded
 	VectorField2 field;
 	//Scalar field to be loaded
@@ -72,6 +88,62 @@ public:
 	bool normal;
 	float MinSpeed;
 	bool fix;
+
+	// **** LIC and Texture variables (from Task7) ****
+	
+	///File name of the vector field
+	bool isLoaded;
+
+	//Data
+	ScalarField2 Gray;
+	ScalarField2 Red;
+	ScalarField2 Green;
+	ScalarField2 Blue;
+	ScalarField2 drawnGreyField;
+	ScalarField2 drawnRedField;
+	ScalarField2 drawnGreenField;
+	ScalarField2 drawnBlueField;
+	ScalarField2 contrastGrayField;
+	ScalarField2 contrastRedField;
+	ScalarField2 contrastGreenField;
+	ScalarField2 contrastBlueField;
+
+	//Values fo
+	int SampleX;
+	int SampleY;
+	float KernelSize;
+	int Seed;
+	bool RandomTexture;
+	bool FastLIC;
+	bool AutoContrast;
+	bool BWTexture;
+	bool ScalarColor;
+
+	//Resolution of texture
+	int minRes;
+	int iWidth;
+	int iHeight;
+
+	//Variables Enhancing Contrast
+	int n;
+	float accMeans;		// u*n
+	float accStdDev;	// P
+	float oldMean;		// u
+	float oldStdDev;	// stdDev (sigma)
+	float newMean;		// u'
+	float newStdDev;	// stdDev'
+
+	///File name of the image for the texture
+    string ImageFilename;
+
+	///Whether to draw the texture in RGB or grayscale
+    bool bColoredTexture;
+
+	//Color paramenters
+	float max;
+	float min;
+
+	// **** end of LIC and Texture variables (from Task7) ****
 
 protected:
     GLGeometryViewer* viewer;
