@@ -44,7 +44,6 @@ IMPLEMENT_GEOX_CLASS( Task7, 0)
     ADD_STRING_PROP(ImageFilename, 0)
     ADD_BOOLEAN_PROP(bColoredTexture, 0)
     
-	ADD_NOARGS_METHOD(Task7::LoadGradientVectorField)
 	ADD_NOARGS_METHOD(Task7::DrawTexture)
 	ADD_NOARGS_METHOD(Task7::LIC)
 	ADD_NOARGS_METHOD(Task7::EnhanceContrast)
@@ -98,7 +97,7 @@ Task7::Task7()
 Task7::~Task7() {}
 
 void Task7::RunFindingZero(){
-	viewer->clear();
+	//viewer->clear();
 	//Load the vector field
     if (!field.load(VectorfieldFilename))
     {
@@ -166,7 +165,7 @@ void Task7::LoadGradientVectorField(){
 }
 
 void Task7::RunFindingZeroScalar(){
-	viewer->clear();
+	//viewer->clear();
 	//Creating the vector field of gradients 
 	LoadGradientVectorField();
 	
@@ -245,7 +244,7 @@ void Task7::DrawScalarField()
 
 void Task7::DrawVectorField()
 {
-    viewer->clear();
+    //viewer->clear();
 
     //Load the vector field
     VectorField2 field;
@@ -256,17 +255,17 @@ void Task7::DrawVectorField()
     }
 
 	//Draw boundrys
-	viewer->addLine(gradientField.boundMin()[0], gradientField.boundMin()[1], gradientField.boundMin()[0], gradientField.boundMax()[1], makeVector4f(1,1,0.5,1), 2);
-	viewer->addLine(gradientField.boundMin()[0], gradientField.boundMin()[1], gradientField.boundMax()[0], gradientField.boundMin()[1], makeVector4f(1,1,0.5,1), 2);
-	viewer->addLine(gradientField.boundMin()[0], gradientField.boundMax()[1], gradientField.boundMax()[0], gradientField.boundMax()[1], makeVector4f(1,1,0.5,1), 2);
-	viewer->addLine(gradientField.boundMax()[0], gradientField.boundMin()[1], gradientField.boundMax()[0], gradientField.boundMax()[1], makeVector4f(1,1,0.5,1), 2);
+	viewer->addLine(field.boundMin()[0], field.boundMin()[1], field.boundMin()[0], field.boundMax()[1], makeVector4f(1,1,0.5,1), 2);
+	viewer->addLine(field.boundMin()[0], field.boundMin()[1], field.boundMax()[0], field.boundMin()[1], makeVector4f(1,1,0.5,1), 2);
+	viewer->addLine(field.boundMin()[0], field.boundMax()[1], field.boundMax()[0], field.boundMax()[1], makeVector4f(1,1,0.5,1), 2);
+	viewer->addLine(field.boundMax()[0], field.boundMin()[1], field.boundMax()[0], field.boundMax()[1], makeVector4f(1,1,0.5,1), 2);
 
     //Draw vector directions (constant length)
-    for(float32 x=gradientField.boundMin()[0]; x<=gradientField.boundMax()[0]; x+=0.08)
+    for(float32 x=field.boundMin()[0]; x<=field.boundMax()[0]; x+=0.08)
     {
-        for(float32 y=gradientField.boundMin()[1]; y<=gradientField.boundMax()[1]; y+=0.08)
+        for(float32 y=field.boundMin()[1]; y<=field.boundMax()[1]; y+=0.08)
         {
-            Vector2f vec = gradientField.sample(x,y);
+            Vector2f vec = field.sample(x,y);
            // vec.normalize();
 
 			viewer->addLine(x, y, x + ArrowScale*vec[0], y + ArrowScale*vec[1]);
@@ -469,8 +468,8 @@ void Task7::ClassifyPoints()
 //Runge-Kutta
 void Task7::RungeKuttaStreamlinesVoid(VectorField2 field, float startX, float startY, float RKStepSize, bool backwards){
 
-	// Different colors for forwards (green) and backwards (red)
-	Vector4f RKcolor = backwards ? makeVector4f(1,0,0,1) : makeVector4f(0,1,0,1);
+	// White
+	Vector4f RKcolor = makeVector4f(1,1,1,1);
 	
 	//Defining the start point
 	Vector2f startPoint = makeVector2f(startX,startY);
